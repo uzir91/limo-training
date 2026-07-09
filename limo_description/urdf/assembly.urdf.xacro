@@ -1,0 +1,104 @@
+<?xml version="1.0"?>
+
+<robot name="limo" xmlns:xacro="http://wiki.ros.org/xacro">
+    <xacro:arg name="simulation" default="false"/>
+
+    <xacro:include filename="$(find limo_description)/urdf/simulation.urdf.xacro" />
+    <xacro:include filename="$(find limo_description)/urdf/hardware.urdf.xacro" />
+
+    <xacro:include filename="$(find limo_description)/urdf/base.urdf.xacro" />
+    <xacro:include filename="$(find limo_description)/urdf/wheel.urdf.xacro" />
+    <xacro:include filename="$(find limo_description)/urdf/imu.urdf.xacro" />
+    <xacro:include filename="$(find limo_description)/urdf/ydlidar.urdf.xacro" />
+    <xacro:include filename="$(find limo_description)/urdf/dabai.urdf.xacro" />
+
+    <xacro:property name="wheel_base" value="0.1974"/>
+    <xacro:property name="wheel_track" value="0.176"/>
+    <xacro:property name="wheel_radius" value="0.0482" />
+    <xacro:property name="base_clearance" value="-0.0" />
+    <xacro:property name="M_PI" value="3.1415926536"/>
+
+    <link
+        name="base_footprint"/>
+
+    <xacro:base
+        object_name="base"
+        frame_link="base_link"
+        parent_link="base_footprint"
+        xyz="0 0 ${wheel_radius}"
+        rpy="0 0 0"
+        color="false"/>
+
+    <xacro:wheel
+        object_name="wheel_front_left"
+        joint_name="wheel_front_left_joint"
+        frame_link="wheel_front_left_link"
+        parent_link="base_link"
+        xyz="${wheel_base/2} ${wheel_track/2} ${base_clearance}"
+        rpy="0 0 0"
+        direction="1"
+        color="false"/>
+
+    <xacro:wheel
+        object_name="wheel_front_right"
+        joint_name="wheel_front_right_joint"
+        frame_link="wheel_front_right_link"
+        parent_link="base_link"
+        xyz="${wheel_base/2} ${-wheel_track/2} ${base_clearance}"
+        rpy="0 0 0"
+        direction="1"
+        color="false"/>
+
+    <xacro:wheel
+        object_name="wheel_rear_left"
+        joint_name="wheel_rear_left_joint"
+        frame_link="wheel_rear_left_link"
+        parent_link="base_link"
+        xyz="${-wheel_base/2} ${wheel_track/2} ${base_clearance}"
+        rpy="0 0 0"
+        direction="1"
+        color="false"/>
+
+    <xacro:wheel
+        object_name="wheel_rear_right"
+        joint_name="wheel_rear_right_joint"
+        frame_link="wheel_rear_right_link"
+        parent_link="base_link"
+        xyz="${-wheel_base/2} ${-wheel_track/2} ${base_clearance}"
+        rpy="0 0 0"
+        direction="1"
+        color="false"/>
+
+    <xacro:imu
+        object_name="imu"
+        topic="imu"
+        frame_link="imu_link"
+        parent_link="base_link"
+        xyz="0 0 0"
+        rpy="0 0 0"/>
+
+    <xacro:ydlidar
+        object_name="ydlidar"
+        topic="scan"
+        frame_link="ydlidar_link"
+        parent_link="base_link"
+        xyz="0.1016 0 0.066"
+        rpy="0 0 0"/>
+
+    <xacro:dabai
+        object_name="dabai"
+        topic="camera"
+        image_link="dabai_image_link"
+        point_link="dabai_point_link"
+        parent_link="base_link"
+        xyz="0.0826 0 0.13"
+        rpy="${0*M_PI/180} ${0*M_PI/180} ${0*M_PI/180}"/>
+
+    <xacro:if value="$(arg simulation)">
+        <xacro:simulation/>
+    </xacro:if>
+    <xacro:unless value="$(arg simulation)">
+        <xacro:hardware/>
+    </xacro:unless>
+
+</robot>

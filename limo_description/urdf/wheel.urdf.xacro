@@ -1,0 +1,134 @@
+<?xml version="1.0"?>
+
+<robot name="wheel" xmlns:xacro="http://wiki.ros.org/xacro">
+    
+    <xacro:macro name="wheel" params="object_name:='wheel' joint_name='wheel_joint' frame_link='wheel_link' parent_link:='base_link' xyz:='0 0 0' rpy:='0 0 0' direction:='1' color:='false' simple:='true'">
+        <xacro:property
+            name="mass"
+            value="0.5"/>
+        <xacro:property
+            name="wheel_height"
+            value="0.045" />
+        <xacro:property
+            name="wheel_radius"
+            value="0.0482" />
+        <xacro:property
+            name="M_PI"
+            value="3.1415926536"/>
+        
+        <link
+            name="${frame_link}">
+            <inertial>
+                <origin
+                    xyz="0 0 0"
+                    rpy="0 0 0"/>
+                <mass
+                    value="${mass}"/>
+                <inertia
+                    ixx="${(3 * wheel_radius * wheel_radius + wheel_height * wheel_height) / 12.0}"
+                    iyy="${(3 * wheel_radius * wheel_radius + wheel_height * wheel_height) / 12.0}"
+                    izz="${wheel_radius * wheel_radius / 2.0}"
+                    ixy="0.0"
+                    ixz="0.0"
+                    iyz="0.0"/>
+            </inertial>
+            <visual>
+                <origin
+                    xyz="0 ${-wheel_height/2 + 0.001} 0"
+                    rpy="0 0 0"/>
+                <geometry>
+                    <xacro:if value="${color}">
+                        <mesh
+                            filename="file://$(find limo_description)/meshes/limo_wheel.dae"
+                            scale="1 1 1"/>
+                    </xacro:if>
+                    <xacro:unless value="${color}">
+                        <mesh
+                            filename="file://$(find limo_description)/meshes/limo_wheel.stl"
+                            scale="0.001 0.001 0.001"/>
+                    </xacro:unless>
+                </geometry>
+                <material
+                    name="${object_name}_material">
+                    <color
+                        rgba="0 0 0 1"/>
+                    <texture
+                        filename=""/>
+                </material>
+            </visual>
+            <collision>
+                <xacro:if value="${simple}">
+                    <origin
+                        xyz="0 0 0"
+                        rpy="${M_PI/2} 0 0"/>
+                    <geometry>
+                        <cylinder
+                            radius="${wheel_radius}"
+                            length="0.001"/>
+                    </geometry>
+                </xacro:if>
+                <xacro:unless value="${simple}">
+                    <origin
+                        xyz="0 ${-wheel_height/2 + 0.001} 0"
+                        rpy="0 0 0"/>
+                    <geometry>
+                        <xacro:if value="${color}">
+                            <mesh
+                                filename="file://$(find limo_description)/meshes/limo_wheel.dae"
+                                scale="1 1 1"/>
+                        </xacro:if>
+                        <xacro:unless value="${color}">
+                            <mesh
+                                filename="file://$(find limo_description)/meshes/limo_wheel.stl"
+                                scale="0.001 0.001 0.001"/>
+                        </xacro:unless>
+                    </geometry>
+                </xacro:unless>
+            </collision>
+        </link>
+
+        <joint
+            name="${joint_name}"
+            type="continuous">
+            <origin
+                xyz="${xyz}"
+                rpy="${rpy}"/>
+            <parent
+                link="${parent_link}"/>
+            <child
+                link="${frame_link}"/>
+            <axis
+                xyz="0 ${direction} 0"/>
+        </joint>
+
+        <transmission
+            name="${object_name}_trans"
+            type="SimpleTransmission">
+            <type>
+                transmission_interface/SimpleTransmission
+            </type>
+            <joint
+                name="${joint_name}">
+                <hardwareInterface>
+                    hardware_interface/VelocityJointInterface
+                </hardwareInterface>
+            </joint>
+            <actuator
+                name="${object_name}_actuator">
+                <mechanicalReduction>
+                    1
+                </mechanicalReduction>
+            </actuator>
+        </transmission>
+
+        <gazebo reference="${frame_link}">
+            <material>Gazebo/Black</material>
+            <kp>1000000.0</kp>
+            <kd>1.0</kd>
+            <mu1>1.0</mu1>
+            <mu2>0.5</mu2>
+            <fdir1>1 0 0</fdir1>
+        </gazebo>
+
+    </xacro:macro>
+</robot>

@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+
+<robot name="hardware" xmlns:xacro="http://wiki.ros.org/xacro">
+    <xacro:macro name="hardware" params="">
+        <ros2_control name="ros2_control_system" type="system">
+            <hardware>
+                <plugin>fake_components/GenericSystem</plugin>
+                <!-- <plugin>limo_hardware/LimoHardware</plugin> -->
+            </hardware>
+
+            <joint name="wheel_front_left_joint">
+                <command_interface name="velocity">
+                    <param name="min">-10</param>
+                    <param name="max">10</param>
+                </command_interface>
+                <state_interface name="position"/>
+                <state_interface name="velocity"/>
+            </joint>
+
+            <joint name="wheel_front_right_joint">
+                <command_interface name="velocity">
+                    <param name="min">-10</param>
+                    <param name="max">10</param>
+                </command_interface>
+                <state_interface name="position"/>
+                <state_interface name="velocity"/>
+            </joint>
+
+            <joint name="wheel_rear_left_joint">
+                <command_interface name="velocity">
+                    <param name="min">-10</param>
+                    <param name="max">10</param>
+                </command_interface>
+                <state_interface name="position"/>
+                <state_interface name="velocity"/>
+            </joint>
+
+            <joint name="wheel_rear_right_joint">
+                <command_interface name="velocity">
+                    <param name="min">-10</param>
+                    <param name="max">10</param>
+                </command_interface>
+                <state_interface name="position"/>
+                <state_interface name="velocity"/>
+            </joint>
+        </ros2_control>
+    </xacro:macro>
+
+</robot>

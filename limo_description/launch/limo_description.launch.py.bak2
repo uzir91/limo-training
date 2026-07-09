@@ -1,0 +1,262 @@
+from os.path import join
+from ament_index_python.packages import get_package_share_directory
+
+from launch import LaunchDescription
+from launch.conditions import IfCondition , UnlessCondition
+from launch.actions import DeclareLaunchArgument, GroupAction, IncludeLaunchDescription
+from launch.substitutions import Command, FindExecutable, PathJoinSubstitution, LaunchConfiguration
+from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.event_handlers import OnProcessExit
+from launch_ros.actions import Node, PushRosNamespace
+from launch_ros.substitutions import FindPackageShare
+from launch_ros.parameter_descriptions import ParameterValue
+
+
+def generate_launch_description():
+    robot_description = Command([
+        PathJoinSubstitution([FindExecutable(name='xacro')]), ' ',
+        PathJoinSubstitution([FindPackageShare('limo_description'), 'urdf', 'assembly.urdf.xacro']),
+        ' ', 'simulation:=', LaunchConfiguration('simulation')
+    ])
+
+    return LaunchDescription([
+        DeclareLaunchArgument("simulation", default_value="false", description="true for simulation"),
+        DeclareLaunchArgument("rviz", default_value="true", description="enable rviz"),
+        # DeclareLaunchArgument("joint_state_enable", default_value="false", description="enable joint state publisher"),
+        # DeclareLaunchArgument("joint_state_gui_enable", default_value="true", description="enable joint state publisher gui"),
+        DeclareLaunchArgument("rviz_config", default_value="description.rviz", description="rviz filename"),
+        DeclareLaunchArgument("world_config", default_value="mrworld_adr_obstacle.world", description="world filename"),
+        DeclareLaunchArgument("gui_config", default_value="false", description="gazebo gui enable"),
+        DeclareLaunchArgument("controller_simulation_config", default_value="simulation.yaml", description="controller file for simulation"),
+        DeclareLaunchArgument("controller_hardware_config", default_value="hardware.yaml", description="controller file for hardware"),
+        
+        GroupAction(
+            condition = IfCondition(LaunchConfiguration('simulation')),
+            actions = [
+                IncludeLaunchDescription(
+                    PythonLaunchDescriptionSource(
+                        PathJoinSubstitution([
+                            FindPackageShare('gazebo_ros'),
+                            'launch',
+                            'gazebo.launch.py'
+                        ])
+                    ),
+                    launch_arguments = {
+                        'gui': LaunchConfiguration('gui_config'),
+                        'world': PathJoinSubstitution([
+                            FindPackageShare('limo_description'),
+                            'worlds',
+                            LaunchConfiguration('world_config')
+                        ]),
+                        'use_sim_time': LaunchConfiguration('simulation')
+                    }.items()
+                ),
+
+                Node(
+                    package ='gazebo_ros',
+                    executable ='spawn_entity.py',
+                    output ='screen',
+                    arguments=['-entity', 'limo', '-topic', 'robot_description'],
+                    parameters = [{
+                        'use_sim_time': LaunchConfiguration('simulation')
+                    }]
+                ),
+
+                Node(
+                    package ='controller_manager',
+                    executable ='spawner',
+                    arguments = [
+                        'joint_state_broadcaster',
+                        '-c', '/controller_manager',
+                        '-p',
+                        PathJoinSubstitution([
+                            FindPackageShare('limo_description'),
+                            'cfg',
+                            LaunchConfiguration('controller_simulation_config')
+                        ])
+                    ],
+                    output = 'screen',
+                    parameters = [
+                        {
+                            'use_sim_time': LaunchConfiguration('simulation')
+                        }
+                    ]
+                ),
+
+                Node(
+                    package = 'controller_manager',
+                    executable = 'spawner',
+                    arguments = [
+                        'diff_drive_controller',
+                        '-c', '/controller_manager',
+                        '-p',
+                        PathJoinSubstitution([
+                            FindPackageShare('limo_description'),
+                            'cfg',
+                            LaunchConfiguration('controller_simulation_config')
+                        ])
+                    ],
+                    output = 'screen',
+                    parameters = [
+                        {
+                            'use_sim_time': LaunchConfiguration('simulation')
+                        }
+                    ]
+                )
+            ]
+        ),
+        
+        GroupAction(
+            condition = UnlessCondition(LaunchConfiguration('simulation')),
+            actions = [
+                Node(
+                    package = 'controller_manager',
+                    executable = 'ros2_control_node',
+                    output = 'screen',
+                    parameters = [
+                        {
+                            'robot_description': robot_description,
+                            'use_sim_time': LaunchConfiguration('simulation')
+                        },
+                        PathJoinSubstitution([
+                            FindPackageShare('limo_description'),
+                            'cfg',
+                            LaunchConfiguration('controller_hardware_config')
+                        ])
+                    ]
+                ),
+
+                Node(
+                    package ='controller_manager',
+                    executable ='spawner',
+                    arguments = [
+                        'joint_state_broadcaster',
+                        '-c', '/controller_manager',
+                        '-p',
+                        PathJoinSubstitution([
+                            FindPackageShare('limo_description'),
+                            'cfg',
+                            LaunchConfiguration('controller_hardware_config')
+                        ])
+                    ],
+                    output = 'screen',
+                    parameters = [
+                        {
+                            'use_sim_time': LaunchConfiguration('simulation')
+                        }
+                    ]
+                ),
+
+                Node(
+                    package = 'controller_manager',
+                    executable = 'spawner',
+                    arguments = [
+                        'diff_drive_controller',
+                        '-c', '/controller_manager',
+                        '-p',
+                        PathJoinSubstitution([
+                            FindPackageShare('limo_description'),
+                            'cfg',
+                            LaunchConfiguration('controller_hardware_config')
+                        ])
+                    ],
+                    output = 'screen',
+                    parameters = [
+                        {
+                            'use_sim_time': LaunchConfiguration('simulation')
+                        }
+                    ]
+                )
+            ]
+        ),
+
+        # Node(
+        #     package ='controller_manager',
+        #     executable ='spawner',
+        #     arguments = ['joint_state_broadcaster'],
+        #     output = 'screen',
+        #     parameters = [{
+        #         'use_sim_time': LaunchConfiguration('simulation')
+        #     },
+        #     controllers_file]
+        # ),
+
+        # Node(
+        #     package = 'controller_manager',
+        #     executable = 'spawner',
+        #     arguments = ['diff_drive_controller'],
+        #     output = 'screen',
+        #     parameters = [{
+        #         'use_sim_time': LaunchConfiguration('simulation')
+        #     },
+        #     controllers_file]
+        # ),
+
+        Node(
+            package = 'robot_state_publisher',
+            executable = 'robot_state_publisher',
+            output = 'screen',
+            parameters = [{
+                'robot_description': robot_description,
+                'use_sim_time': LaunchConfiguration('simulation')
+            }]
+        ),
+
+        # GroupAction(
+        #     condition = IfCondition(LaunchConfiguration('joint_state_gui_enable')),
+        #     actions = [
+        #         Node(
+        #             name ='joint_state_publisher_gui_node',
+        #             package ='joint_state_publisher_gui',
+        #             executable ='joint_state_publisher_gui',
+        #             output ='screen',
+        #             parameters = [{
+        #                 'use_sim_time': LaunchConfiguration('simulation')
+        #             }]
+        #         )
+        #     ]
+        # ),
+
+        # GroupAction(
+        #     condition = UnlessCondition(LaunchConfiguration('joint_state_gui_enable')),
+        #     actions = [
+        #         GroupAction(
+        #             condition = IfCondition(LaunchConfiguration('joint_state_enable')),
+        #             actions = [
+        #                 Node(
+        #                     name ='joint_state_publisher_node',
+        #                     package ='joint_state_publisher',
+        #                     executable ='joint_state_publisher',
+        #                     output ='screen',
+        #                     parameters = [{
+        #                         'use_sim_time': LaunchConfiguration('simulation')
+        #                     }]
+        #                 )
+        #             ]
+        #         )
+        #     ]
+        # ),
+
+        GroupAction(
+            condition = IfCondition(LaunchConfiguration('rviz')),
+            actions = [
+                Node(
+                    name ='rviz2_node',
+                    package ='rviz2',
+                    executable ='rviz2',
+                    output ='screen',
+                    parameters = [{
+                        'use_sim_time': LaunchConfiguration('simulation')
+                    }],
+                    arguments=[
+                        '-d',
+                        PathJoinSubstitution([
+                            FindPackageShare('limo_description'),
+                            'rviz',
+                            LaunchConfiguration('rviz_config')
+                        ])
+                    ]
+                )
+            ]
+        )
+    ])
