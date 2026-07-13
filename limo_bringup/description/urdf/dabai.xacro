@@ -2,7 +2,7 @@
 
 <robot name="dabai" xmlns:xacro="http://wiki.ros.org/xacro">
 
-    <xacro:macro name="dabai" params="object_name:='dabai' topic='dabai' image_link='dabai_image_link' point_link='dabai_point_link' parent_link:='link' xyz:='0 0 0' rpy:='0 0 0'">
+    <xacro:macro name="dabai" params="object_name:='dabai' topic='dabai' camera_link='camera_link'  image_link='image_link' point_link='point_link' parent_link:='link' xyz:='0 0 0' rpy:='0 0 0'">
 
         <xacro:property
             name="mass"
@@ -21,7 +21,7 @@
             value="3.1415926536"/>
         
         <link
-            name="${image_link}">
+            name="${camera_link}">
             <inertial>
                 <origin
                     xyz="0 0 0"
@@ -64,16 +64,31 @@
         </link>
 
         <link
+            name="${image_link}"/>
+
+        <link
             name="${point_link}"/>
 
         <joint
-            name="${object_name}_image_joint"
+            name="${object_name}_camera_joint"
             type="fixed">
             <origin
                 xyz="${xyz}"
                 rpy="${rpy}"/>
             <parent
                 link="${parent_link}"/>
+            <child
+                link="${camera_link}"/>
+        </joint>
+
+        <joint
+            name="${object_name}_image_joint"
+            type="fixed">
+            <origin
+                xyz="0 0.01 0"
+                rpy="0 0 0"/>
+            <parent
+                link="${camera_link}"/>
             <child
                 link="${image_link}"/>
         </joint>
@@ -82,43 +97,71 @@
             name="${object_name}_point_joint"
             type="fixed">
             <origin
-                xyz="0 0 0"
-                rpy="${-90*M_PI/180} ${0*M_PI/180} ${-90*M_PI/180}"/>
+                xyz="0 0.0 0"
+                rpy="0 0 0"/>
+                <!-- rpy="${-90*M_PI/180} ${0*M_PI/180} ${-90*M_PI/180}"/> -->
             <parent
-                link="${image_link}"/>
+                link="${camera_link}"/>
             <child
                 link="${point_link}"/>
         </joint>
 
         <gazebo reference="${image_link}">
-            <sensor name="${object_name}_depth_sensor" type="depth">
+            <sensor
+                name="${object_name}_sensor"
+                type="rgbd_camera">
+
+                <!-- Sensor pose relative to image_link -->
+                <pose>0 0 0 0 0 0</pose>
+
                 <always_on>true</always_on>
                 <update_rate>30</update_rate>
                 <visualize>true</visualize>
-                <camera>
-                    <horizontal_fov>${60*M_PI/180}</horizontal_fov>
+
+                <!--
+                    Base Gazebo Transport topic.
+
+                    Expected child topics:
+                        ${topic}/image
+                        ${topic}/camera_info
+                        ${topic}/depth_image
+                        ${topic}/points
+                -->
+                <topic>${topic}</topic>
+
+                <!-- Gazebo rendering sensor frame: +Z forward -->
+                <gz_frame_id>${point_link}</gz_frame_id>
+
+                <camera name="${object_name}_camera">
+                    <horizontal_fov>
+                        ${60.0 * M_PI / 180.0}
+                    </horizontal_fov>
+
                     <image>
                         <width>640</width>
                         <height>480</height>
                         <format>R8G8B8</format>
                     </image>
+
+                    <!-- RGB rendering range -->
                     <clip>
                         <near>0.1</near>
                         <far>8.0</far>
                     </clip>
+
+                    <!-- Depth and point-cloud range -->
+                    <depth_camera>
+                        <clip>
+                            <near>0.2</near>
+                            <far>8.0</far>
+                        </clip>
+                    </depth_camera>
+
+                    <!-- ROS optical convention -->
+                    <optical_frame_id>
+                        ${image_link}
+                    </optical_frame_id>
                 </camera>
-                <plugin name="${object_name}_plugin" filename="libgazebo_ros_camera.so">
-                    <ros>
-                        <namespace>/</namespace>
-                        <remapping>${object_name}_depth_sensor/camera_info:=${topic}/camera_info</remapping>
-                        <remapping>${object_name}_depth_sensor/depth/camera_info:=${topic}/depth/camera_info</remapping>
-                        <remapping>${object_name}_depth_sensor/image_raw:=${topic}/image_raw</remapping>
-                        <remapping>${object_name}_depth_sensor/depth/image_raw:=${topic}/depth/image_raw</remapping>
-                        <remapping>${object_name}_depth_sensor/points:=${topic}/points</remapping>
-                    </ros>
-                    <frame_name>${point_link}</frame_name>
-                    <point_cloud_cutoff>0.2</point_cloud_cutoff>
-                </plugin>
             </sensor>
         </gazebo>
     </xacro:macro>

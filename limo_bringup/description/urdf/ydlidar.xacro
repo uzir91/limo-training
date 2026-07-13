@@ -73,39 +73,38 @@
         </joint>
 
         <gazebo reference="${frame_link}">
-            <sensor name="${object_name}" type="ray">
+            <sensor name="${object_name}_sensor" type="gpu_lidar">
                 <pose>0 0 0 0 0 0</pose>
+
+                <always_on>true</always_on>
                 <visualize>true</visualize>
                 <update_rate>10</update_rate>
-                <ray>
+
+                <topic>${topic}</topic>
+                <gz_frame_id>${frame_link}</gz_frame_id>
+
+                <lidar>
                     <scan>
                         <horizontal>
                             <samples>461</samples>
                             <resolution>1</resolution>
-                            <min_angle>-${M_PI}</min_angle>
+                            <min_angle>${-M_PI}</min_angle>
                             <max_angle>${M_PI}</max_angle>
                         </horizontal>
                     </scan>
+
                     <range>
                         <min>0.3</min>
                         <max>15.0</max>
                         <resolution>0.015</resolution>
                     </range>
+
                     <noise>
                         <type>gaussian</type>
                         <mean>0.0</mean>
                         <stddev>0.01</stddev>
                     </noise>
-                </ray>
-                <plugin name="${object_name}_plugin" filename="libgazebo_ros_ray_sensor.so">
-                    <ros>
-                        <namespace>/</namespace>
-                        <remapping>${object_name}_plugin/out:=${topic}</remapping>
-                    </ros>
-                    <output_type>sensor_msgs/LaserScan</output_type>
-                    <frame_name>${frame_link}</frame_name>
-                    <gaussian_noise>0.01</gaussian_noise>
-                </plugin>
+                </lidar>
             </sensor>
         </gazebo>
 

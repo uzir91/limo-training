@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>limo_bringup</name>
+  <version>0.0.1</version>
+  <description>All-in-one LIMO bringup: URDF, gazebo, hardware plugin, custom msgs.</description>
+  <maintainer email="wrazzercc@email.com">Muhajir Mustapa</maintainer>
+  <license>Apache-2.0</license>
+  
+  <!-- Build tool -->
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <!-- Core runtime dependencies -->
+  <depend>rclcpp</depend>
+  <depend>rclcpp_lifecycle</depend>
+  <depend>hardware_interface</depend>
+  <depend>pluginlib</depend>
+  <depend>controller_interface</depend>
+  <depend>yaml_cpp_vendor</depend>
+  <depend>std_msgs</depend>
+  <depend>sensor_msgs</depend>
+  <depend>geometry_msgs</depend>
+
+  <!-- For Gazebo simulation (optional, if used) -->
+  <exec_depend>gazebo_ros</exec_depend>
+
+  <!-- Optional: diagnostics -->
+  <depend>diagnostic_updater</depend>
+
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

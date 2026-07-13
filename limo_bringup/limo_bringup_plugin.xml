@@ -1,0 +1,7 @@
+<library path="limo_bringup_node">
+  <class name="limo_bringup/LimoSystemHardware"
+         type="limo_bringup::LimoSystemHardware"
+         base_class_type="hardware_interface::SystemInterface">
+    <description>Hardware interface for LIMO robot.</description>
+  </class>
+</library>

@@ -6,6 +6,8 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
+        - /RobotModel1
+        - /LaserScan1
       Splitter Ratio: 0.5
     Tree Height: 549
   - Class: rviz_common/Selection
@@ -57,7 +59,7 @@ Visualization Manager:
         Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /robot_description
+        Value: /asd/robot_description
       Enabled: true
       Links:
         All Links Enabled: true
@@ -65,50 +67,50 @@ Visualization Manager:
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
-        base_footprint:
+        asd/base_footprint:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-        base_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        dabai_image_link:
+        asd/base_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        dabai_point_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        imu_link:
+        asd/camera_image_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        wheel_front_left_link:
+        asd/camera_point_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        asd/imu_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        wheel_front_right_link:
+        asd/lidar_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        wheel_rear_left_link:
+        asd/wheel_front_left_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        wheel_rear_right_link:
+        asd/wheel_front_right_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        ydlidar_link:
+        asd/wheel_rear_left_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        asd/wheel_rear_right_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -126,25 +128,25 @@ Visualization Manager:
       Frame Timeout: 15
       Frames:
         All Enabled: false
-        base_footprint:
+        asd/base_footprint:
           Value: true
-        base_link:
+        asd/base_link:
           Value: true
-        dabai_image_link:
+        asd/camera_image_link:
           Value: true
-        dabai_point_link:
+        asd/camera_point_link:
           Value: true
-        imu_link:
+        asd/imu_link:
           Value: true
-        wheel_front_left_link:
+        asd/lidar_link:
           Value: true
-        wheel_front_right_link:
+        asd/wheel_front_left_link:
           Value: true
-        wheel_rear_left_link:
+        asd/wheel_front_right_link:
           Value: true
-        wheel_rear_right_link:
+        asd/wheel_rear_left_link:
           Value: true
-        ydlidar_link:
+        asd/wheel_rear_right_link:
           Value: true
       Marker Scale: 0.30000001192092896
       Name: TF
@@ -152,22 +154,22 @@ Visualization Manager:
       Show Axes: true
       Show Names: true
       Tree:
-        base_footprint:
-          base_link:
-            dabai_image_link:
-              dabai_point_link:
+        asd/base_footprint:
+          asd/base_link:
+            asd/camera_image_link:
+              asd/camera_point_link:
                 {}
-            imu_link:
+            asd/imu_link:
               {}
-            wheel_front_left_link:
+            asd/lidar_link:
               {}
-            wheel_front_right_link:
+            asd/wheel_front_left_link:
               {}
-            wheel_rear_left_link:
+            asd/wheel_front_right_link:
               {}
-            wheel_rear_right_link:
+            asd/wheel_rear_left_link:
               {}
-            ydlidar_link:
+            asd/wheel_rear_right_link:
               {}
       Update Interval: 0
       Value: true
@@ -201,14 +203,14 @@ Visualization Manager:
         Filter size: 10
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /scan
+        Value: /asd/scan
       Use Fixed Frame: true
       Use rainbow: true
       Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
-    Fixed Frame: base_footprint
+    Fixed Frame: asd/base_footprint
     Frame Rate: 30
   Name: root
   Tools:
@@ -250,21 +252,26 @@ Visualization Manager:
   Value: true
   Views:
     Current:
-      Angle: 0
-      Class: rviz_default_plugins/TopDownOrtho
+      Class: rviz_default_plugins/ThirdPersonFollower
+      Distance: 4.643644332885742
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
+      Focal Point:
+        X: -0.206853985786438
+        Y: -0.1576472520828247
+        Z: 5.371086331251718e-07
+      Focal Shape Fixed Size: true
+      Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 88.45901489257812
+      Pitch: 0.5397970080375671
       Target Frame: <Fixed Frame>
-      Value: TopDownOrtho (rviz_default_plugins)
-      X: 0.1104016900062561
-      Y: 0.08798524737358093
+      Value: ThirdPersonFollower (rviz_default_plugins)
+      Yaw: 3.9223787784576416
     Saved: ~
 Window Geometry:
   Displays:

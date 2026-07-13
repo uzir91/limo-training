@@ -1,0 +1,69 @@
+<?xml version="1.0"?>
+
+<robot name="simulation_control" xmlns:xacro="http://wiki.ros.org/xacro">
+    <xacro:macro name="simulation_control" params="namespace:='' control_path:='$(find limo_bringup)/config/simulation_control.yaml'">
+        <ros2_control name="ros2_control_system" type="system">
+            <hardware>
+                <!-- <plugin>gazebo_ros2_control/GazeboSystem</plugin> -->
+                <!-- <plugin>ign_ros2_control/IgnitionSystem</plugin> -->
+                <plugin>gz_ros2_control/GazeboSimSystem</plugin>
+            </hardware>
+
+            <joint name="wheel_front_left_joint">
+                <state_interface name="position"/>
+                <state_interface name="velocity"/>
+                <command_interface name="position"/>
+                <command_interface name="velocity">
+                    <param name="min">-10</param>
+                    <param name="max">10</param>
+                </command_interface>
+            </joint>
+
+            <joint name="wheel_front_right_joint">
+                <state_interface name="position"/>
+                <state_interface name="velocity"/>
+                <command_interface name="position"/>
+                <command_interface name="velocity">
+                    <param name="min">-10</param>
+                    <param name="max">10</param>
+                </command_interface>
+            </joint>
+
+            <joint name="wheel_rear_left_joint">
+                <state_interface name="position"/>
+                <state_interface name="velocity"/>
+                <command_interface name="position"/>
+                <command_interface name="velocity">
+                    <param name="min">-10</param>
+                    <param name="max">10</param>
+                </command_interface>
+            </joint>
+
+            <joint name="wheel_rear_right_joint">
+                <state_interface name="position"/>
+                <state_interface name="velocity"/>
+                <command_interface name="position"/>
+                <command_interface name="velocity">
+                    <param name="min">-10</param>
+                    <param name="max">10</param>
+                </command_interface>
+            </joint>
+        </ros2_control>
+
+        <gazebo>
+
+            <robot_param>robot_description</robot_param>
+            <robot_param_node>robot_state_publisher</robot_param_node>
+            <controller_manager_name>controller_manager</controller_manager_name>
+            <!-- <plugin name="gazebo_ros2_control_plugin" filename="libgazebo_ros2_control.so"> -->
+            <!-- <plugin name="ign_ros2_control::IgnitionROS2ControlPlugin" filename="libign_ros2_control-system.so"> -->
+            <plugin name="gz_ros2_control::GazeboSimROS2ControlPlugin" filename="gz_ros2_control-system">
+                <parameters>${control_path}</parameters>
+                <ros>
+                    <namespace>${namespace}</namespace>
+                </ros>
+            </plugin>
+        </gazebo>
+    </xacro:macro>
+
+</robot>
