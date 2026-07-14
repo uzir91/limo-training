@@ -1,0 +1,132 @@
+<?xml version="1.0"?>
+
+<robot name="limo_base" xmlns:xacro="http://wiki.ros.org/xacro">
+    <xacro:macro name="limo_base" params="object_name:='limo_base' frame_link='base_link' parent_link:='base_footprint' xyz:='0 0 0' rpy:='0 0 0' color:='false' simple:='true'">
+        <xacro:property
+            name="mass"
+            value="2.1557"/>
+        <xacro:property
+            name="base_length"
+            value="0.2938"/>
+        <xacro:property
+            name="base_width"
+            value="0.12"/>
+        <xacro:property
+            name="base_height"
+            value="0.125"/>
+        <xacro:property
+            name="M_PI"
+            value="3.1415926536"/>
+        
+        <link
+            name="${frame_link}">
+            <inertial>
+                <origin
+                    xyz="-0.0014 0 -0.05"
+                    rpy="0 0 1.57"/>
+                <mass
+                    value="${mass}"/>
+                <inertia
+                    ixx="${mass * (base_width * base_width + base_height * base_height) / 12.0}"
+                    ixy="0.0"
+                    ixz="0.0"
+                    iyy="${mass * (base_length * base_length + base_height * base_height) / 12.0}"
+                    iyz="0.0"
+                    izz="${mass * (base_length * base_length + base_width * base_width) / 12.0}"/>
+            </inertial>
+            <visual
+                name="${object_name}_visual">
+                <origin
+                    xyz="-0.0014 0 -0.05"
+                    rpy="0 0 1.57"/>
+                <geometry>
+                    <xacro:if value="${color}">
+                        <mesh
+                            filename="file://$(find limo_description)/meshes/limo_base.dae"
+                            scale="1 1 1"/>
+                    </xacro:if>
+                    <xacro:unless value="${color}">
+                        <mesh
+                            filename="file://$(find limo_description)/meshes/limo_base.stl"
+                            scale="0.001 0.001 0.001"/>
+                    </xacro:unless>
+                </geometry>
+                <material
+                    name="${object_name}_material">
+                    <color
+                        rgba="1 1 1 1"/>
+                    <texture
+                        filename=""/>
+                </material>
+            </visual>
+            <collision
+                name="${object_name}_collision">
+                <xacro:if value="${simple}">
+                    <origin
+                        xyz="0 0 ${base_height/2 - 0.025}"
+                        rpy="0 0 0"/>
+                    <geometry>
+                        <box
+                            size="${base_length} ${base_width} ${base_height}"/>
+                    </geometry>
+                </xacro:if>
+                <xacro:unless value="${simple}">
+                    <origin
+                        xyz="-0.0014 0 -0.05"
+                        rpy="0 0 1.57"/>
+                    <geometry>
+                        <xacro:if value="${color}">
+                            <mesh
+                                filename="file://$(find limo_description)/meshes/limo_base.dae"
+                                scale="1 1 1"/>
+                        </xacro:if>
+                        <xacro:unless value="${color}">
+                            <mesh
+                                filename="file://$(find limo_description)/meshes/base_link.stl"
+                                scale="0.001 0.001 0.001"/>
+                        </xacro:unless>
+                    </geometry>
+                </xacro:unless>
+            </collision>
+        </link>
+
+        <joint
+            name="${object_name}_joint"
+            type="fixed">
+            <origin
+                xyz="${xyz}"
+                rpy="${rpy}"/>
+            <parent
+                link="${parent_link}"/>
+            <child
+                link="${frame_link}"/>
+        </joint>
+
+        <gazebo reference="${frame_link}">
+            <!-- Link-level setting -->
+            <gravity>true</gravity>
+
+            <!-- Inserted into the link collision -->
+            <collision>
+                <surface>
+                    <friction>
+                        <ode>
+                            <mu>0.8</mu>
+                            <mu2>0.8</mu2>
+                        </ode>
+                    </friction>
+
+                    <contact>
+                        <ode>
+                            <kp>1000000.0</kp>
+                            <kd>1.0</kd>
+                            <max_vel>0.0</max_vel>
+                            <min_depth>0.001</min_depth>
+                        </ode>
+                    </contact>
+                </surface>
+            </collision>
+        </gazebo>
+
+    </xacro:macro>
+</robot>

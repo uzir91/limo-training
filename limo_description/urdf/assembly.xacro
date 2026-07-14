@@ -1,0 +1,106 @@
+<?xml version="1.0"?>
+
+<robot name="limo" xmlns:xacro="http://wiki.ros.org/xacro">
+    <xacro:arg name="namespace" default="limo"/>
+    <xacro:arg name="controller_manager_path" default="$(find limo_description)/config/controller_manager.yaml"/>
+    <xacro:arg name="ros2_control_path" default="$(find limo_description)/urdf/ros2_control.xacro"/>
+
+    <xacro:include filename="$(arg ros2_control_path)" />
+    <xacro:include filename="$(find limo_description)/urdf/limo_base.xacro" />
+    <xacro:include filename="$(find limo_description)/urdf/limo_wheel.xacro" />
+    <xacro:include filename="$(find limo_description)/urdf/imu.xacro" />
+    <xacro:include filename="$(find limo_description)/urdf/ydlidar.xacro" />
+    <xacro:include filename="$(find limo_description)/urdf/dabai.xacro" />
+
+    <xacro:property name="namespace" value="$(arg namespace)"/>
+    <xacro:property name="controller_manager_path" value="$(arg controller_manager_path)"/>
+    <xacro:property name="ros2_control_path" value="$(arg ros2_control_path)"/>
+
+    <xacro:property name="wheel_base" value="0.1974"/>
+    <xacro:property name="wheel_track" value="0.176"/>
+    <xacro:property name="wheel_radius" value="0.0482" />
+    <xacro:property name="base_clearance" value="-0.0" />
+    <xacro:property name="M_PI" value="3.1415926536"/>
+
+    <link
+        name="${namespace}/base_footprint"/>
+
+    <xacro:limo_base
+        object_name="base"
+        frame_link="${namespace}/base_link"
+        parent_link="${namespace}/base_footprint"
+        xyz="0 0 ${wheel_radius}"
+        rpy="0 0 0"
+        color="false"/>
+
+    <xacro:limo_wheel
+        object_name="wheel_front_left"
+        joint_name="wheel_front_left_joint"
+        frame_link="${namespace}/wheel_front_left_link"
+        parent_link="${namespace}/base_link"
+        xyz="${wheel_base/2} ${wheel_track/2} ${base_clearance}"
+        rpy="0 0 0"
+        direction="1"
+        color="false"/>
+
+    <xacro:limo_wheel
+        object_name="wheel_front_right"
+        joint_name="wheel_front_right_joint"
+        frame_link="${namespace}/wheel_front_right_link"
+        parent_link="${namespace}/base_link"
+        xyz="${wheel_base/2} ${-wheel_track/2} ${base_clearance}"
+        rpy="0 0 ${M_PI}"
+        direction="1"
+        color="false"/>
+
+    <xacro:limo_wheel
+        object_name="wheel_rear_left"
+        joint_name="wheel_rear_left_joint"
+        frame_link="${namespace}/wheel_rear_left_link"
+        parent_link="${namespace}/base_link"
+        xyz="${-wheel_base/2} ${wheel_track/2} ${base_clearance}"
+        rpy="0 0 0"
+        direction="1"
+        color="false"/>
+
+    <xacro:limo_wheel
+        object_name="wheel_rear_right"
+        joint_name="wheel_rear_right_joint"
+        frame_link="${namespace}/wheel_rear_right_link"
+        parent_link="${namespace}/base_link"
+        xyz="${-wheel_base/2} ${-wheel_track/2} ${base_clearance}"
+        rpy="0 0 ${M_PI}"
+        direction="1"
+        color="false"/>
+
+    <xacro:imu
+        object_name="imu"
+        topic="${namespace}/imu/data"
+        frame_link="${namespace}/imu_link"
+        parent_link="${namespace}/base_link"
+        xyz="0 0 0"
+        rpy="0 0 0"/>
+
+    <xacro:ydlidar
+        object_name="lidar"
+        topic="${namespace}/scan/data"
+        frame_link="${namespace}/lidar_link"
+        parent_link="${namespace}/base_link"
+        xyz="0.1016 0 0.066"
+        rpy="0 0 0"/>
+
+    <xacro:dabai
+        object_name="dabai"
+        topic="${namespace}/camera"
+        camera_link="${namespace}/camera_link"
+        image_link="${namespace}/image_link"
+        point_link="${namespace}/point_link"
+        parent_link="${namespace}/base_link"
+        xyz="0.0826 0 0.13"
+        rpy="${0*M_PI/180} ${0*M_PI/180} ${0*M_PI/180}"/>
+    
+    <xacro:ros2_control
+        namespace="${namespace}"
+        controller_manager_path="${controller_manager_path}"/>
+
+</robot>
