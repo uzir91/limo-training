@@ -4,7 +4,7 @@
     <xacro:macro name="ros2_control" params="namespace:='limo' controller_manager_path:='$(find limo_hardware)/config/controller_manager.yaml'">
         <ros2_control name="ros2_control_system" type="system">
             <!-- <hardware>
-                <plugin>limo_bringup/LimoSystemHardware</plugin>
+                <plugin>limo_interface/LimoSystem</plugin>
                 <param name="wheel_front_left_joint_velocity_timeout">0.2</param>
                 <param name="wheel_front_left_joint_velocity_state_dir">false</param>
                 <param name="wheel_front_left_joint_velocity_command_dir">false</param>
@@ -21,9 +21,14 @@
 
             <!-- <hardware>
                 <plugin>joint_state_topic_hardware_interface/JointStateTopicSystem</plugin>
+                <param name="node_namespace">/${namespace}</param>
                 <param name="joint_commands_topic">/${namespace}/hardware/joint_commands</param>
                 <param name="joint_states_topic">/${namespace}/hardware/joint_states</param>
                 <param name="trigger_joint_command_threshold">-1</param>
+            </hardware> -->
+
+            <!-- <hardware>
+                <plugin>cm_topic_hardware_component/CMTopicSystem</plugin>
             </hardware> -->
 
             <hardware>
