@@ -1,4 +1,4 @@
-from os.path import join
+from os.path import join, exists
 from os import popen, environ
 from ament_index_python.packages import get_package_share_directory
 
@@ -8,16 +8,10 @@ from launch.actions import DeclareLaunchArgument, GroupAction, IncludeLaunchDesc
 from launch.substitutions import Command, FindExecutable, PathJoinSubstitution, LaunchConfiguration
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.event_handlers import OnProcessExit
-from launch_ros.actions import Node, PushRosNamespace
+from launch_ros.actions import LifecycleNode, Node, PushRosNamespace, ComposableNodeContainer
 from launch_ros.substitutions import FindPackageShare
 from launch_ros.parameter_descriptions import ParameterValue
-from launch_ros.descriptions import ParameterFile
-
-def normalize_namespace(ns: str, add_trailing: bool = True) -> str:
-    stripped = ns.strip('/')
-    if not stripped:
-        return ''
-    return stripped + '/' if add_trailing else stripped
+from launch_ros.descriptions import ParameterFile, ComposableNode
 
 def generate_launch_description():
     return LaunchDescription([
@@ -31,22 +25,61 @@ def generate_context(context, *args, **kwargs):
 
     limo_simulation_pkg = FindPackage('limo_simulation')
     limo_description_pkg = FindPackage('limo_description')
+    ros_gz_sim_pkg = FindPackage('ros_gz_sim')
 
     limo_description_launch = join(limo_description_pkg, 'launch', 'description.launch.py')
-    rviz_config = join(limo_simulation_pkg, 'rviz', 'simulation.rviz')
+    ros_gz_sim_launch = join(ros_gz_sim_pkg, 'launch', 'gz_sim.launch.py')
 
     namespace = GetArgument('namespace', 'limo')
-    world = GetArgument('world', 'limo_world.sdf')
     gpu = GetArgument('gpu', 'default').lower()
-
     rviz = GetArgument('rviz', 'true').lower() in ['true', '1', 'yes']
+    gui = GetArgument('gui', 'true').lower() in ['true', '1', 'yes']
+    world_filename = GetArgument('world_filename', 'limo_world.sdf')
+    controller_manager_filename = GetArgument('controller_manager_filename', 'controller_manager.yaml')
+    ros2_control_filename = GetArgument('ros2_control_filename', 'ros2_control.xacro')
+    joy_filename = GetArgument('joy_filename', 'joy.yaml')
+    teleop_twist_filename = GetArgument('teleop_twist_filename', 'teleop_twist.yaml')
+    imu_filter_filename = GetArgument('imu_filter_filename', 'imu_filter.yaml')
+    safety_imu_filename = GetArgument('safety_imu_filename', 'safety_imu.yaml')
+    safety_hardware_filename = GetArgument('safety_hardware_filename', 'safety_hardware.yaml')
+    twist_mux_filename = GetArgument('twist_mux_filename', 'twist_mux.yaml')
+    rviz_filename = GetArgument('rviz_filename', 'simulation.rviz')
 
-    world_path = GetArgument('world_path', join(limo_simulation_pkg, 'worlds', world))
-    controller_manager_path = GetArgument('controller_manager_path', join(limo_simulation_pkg, 'config', 'controller_manager.yaml'))
-    ros2_control_path = GetArgument('ros2_control_path', join(limo_simulation_pkg, 'urdf', 'ros2_control.xacro'))
+    world_path = GetArgument('world_path', join(limo_simulation_pkg, 'worlds', world_filename))
+    controller_manager_path = GetArgument('controller_manager_path', join(limo_simulation_pkg, 'config', namespace, controller_manager_filename))
+    ros2_control_path = GetArgument('ros2_control_path', join(limo_simulation_pkg, 'urdf', ros2_control_filename))
+    joy_path = GetArgument('joy_path', join(limo_simulation_pkg, 'config', namespace, joy_filename))
+    teleop_twist_path = GetArgument('teleop_twist_path', join(limo_simulation_pkg, 'config', namespace, teleop_twist_filename))
+    imu_filter_path = GetArgument('imu_filter_path', join(limo_simulation_pkg, 'config', namespace, imu_filter_filename))
+    safety_imu_path = GetArgument('safety_imu_path', join(limo_simulation_pkg, 'config', namespace, safety_imu_filename))
+    safety_hardware_path = GetArgument('safety_hardware_path', join(limo_simulation_pkg, 'config', namespace, safety_hardware_filename))
+    twist_mux_path = GetArgument('twist_mux_path', join(limo_simulation_pkg, 'config', namespace, twist_mux_filename))
+    rviz_path = GetArgument('rviz_path', join(limo_simulation_pkg, 'rviz', rviz_filename))
+
+    if not exists(world_path):
+        world_path = join(limo_simulation_pkg, 'worlds', 'limo_world.sdf')
+    if not exists(controller_manager_path):
+        controller_manager_path = join(limo_simulation_pkg, 'config', 'controller_manager.yaml')
+    if not exists(ros2_control_path):
+        ros2_control_path = join(limo_simulation_pkg, 'urdf', 'ros2_control.xacro')
+    if not exists(joy_path):
+        joy_path = join(limo_simulation_pkg, 'config', 'joy.yaml')
+    if not exists(teleop_twist_path):
+        teleop_twist_path = join(limo_simulation_pkg, 'config', 'teleop_twist.yaml')
+    if not exists(imu_filter_path):
+        imu_filter_path = join(limo_simulation_pkg, 'config', 'imu_filter.yaml')
+    if not exists(safety_imu_path):
+        safety_imu_path = join(limo_simulation_pkg, 'config', 'safety_imu.yaml')
+    if not exists(safety_hardware_path):
+        safety_hardware_path = join(limo_simulation_pkg, 'config', 'safety_hardware.yaml')
+    if not exists(twist_mux_path):
+        twist_mux_path = join(limo_simulation_pkg, 'config', 'twist_mux.yaml')
+    if not exists(rviz_path):
+        rviz_path = join(limo_simulation_pkg, 'rviz', 'simulation.rviz')
 
     gpu_environment = []
     actions = []
+    components = []
 
     if gpu == 'nvidia':
         gpu_environment = [
@@ -84,7 +117,7 @@ def generate_context(context, *args, **kwargs):
                         limo_description_launch
                     ),
                     launch_arguments={
-                        'namespace': f'{namespace}',
+                        'namespace': f'{join(namespace)}',
                         'gpu': f'{gpu}',
                         'simulation': f'True',
                         'rviz': f'False',
@@ -107,10 +140,10 @@ def generate_context(context, *args, **kwargs):
                 *gpu_environment,
                 IncludeLaunchDescription(
                     PythonLaunchDescriptionSource(
-                        join(FindPackage('ros_gz_sim'), 'launch', 'gz_sim.launch.py')
+                        ros_gz_sim_launch
                     ),
                     launch_arguments={
-                        'gz_args': f'-r -v 3 {world_path}',
+                        'gz_args': f"{'' if gui else '-s '}-r -v 3 {world_path}",
                     }.items(),
                 )
             ],
@@ -120,13 +153,14 @@ def generate_context(context, *args, **kwargs):
     # Gazebo Spawn
     actions.append(
         Node(
-            namespace = normalize_namespace(namespace, False),
             package='ros_gz_sim',
             executable='create',
+            namespace=join(namespace),
+            name='ros_gz_sim_create_node',
             output='screen',
             arguments=[
-                '-topic', '/'+normalize_namespace(namespace, True)+'robot_description',
-                '-name', normalize_namespace(namespace, False),
+                '-topic', join('/', namespace, 'robot_description'),
+                '-name', join(namespace),
                 # '-allow_renaming', 'true',
             ],
         )
@@ -137,26 +171,30 @@ def generate_context(context, *args, **kwargs):
         Node(
             package='ros_gz_bridge',
             executable='parameter_bridge',
-            arguments=[
-                f'/clock@rosgraph_msgs/msg/Clock[ignition.msgs.Clock',
-
-                f'/{normalize_namespace(namespace, True)}imu/data@sensor_msgs/msg/Imu[ignition.msgs.IMU',
-                f'/{normalize_namespace(namespace, True)}scan/data@sensor_msgs/msg/LaserScan[ignition.msgs.LaserScan',
-                f'/{normalize_namespace(namespace, True)}camera/image@sensor_msgs/msg/Image[ignition.msgs.Image',
-                f'/{normalize_namespace(namespace, True)}camera/camera_info@sensor_msgs/msg/CameraInfo[ignition.msgs.CameraInfo',
-                f'/{normalize_namespace(namespace, True)}camera/depth_image@sensor_msgs/msg/Image[ignition.msgs.Image',
-                f'/{normalize_namespace(namespace, True)}camera/points@sensor_msgs/msg/PointCloud2[ignition.msgs.PointCloudPacked',
-            ],
+            namespace=join(namespace),
+            name='ros_gz_parameter_bridge_node',
             output='screen',
+            arguments=[
+                f"/clock@rosgraph_msgs/msg/Clock[ignition.msgs.Clock",
+
+                f"/{join(namespace, 'imu/data')}@sensor_msgs/msg/Imu[ignition.msgs.IMU",
+                f"/{join(namespace, 'scan/data')}@sensor_msgs/msg/LaserScan[ignition.msgs.LaserScan",
+                f"/{join(namespace, 'camera/image')}@sensor_msgs/msg/Image[ignition.msgs.Image",
+                f"/{join(namespace, 'camera/camera_info')}@sensor_msgs/msg/CameraInfo[ignition.msgs.CameraInfo",
+                f"/{join(namespace, 'camera/depth_image')}@sensor_msgs/msg/Image[ignition.msgs.Image",
+                f"/{join(namespace, 'camera/points')}@sensor_msgs/msg/PointCloud2[ignition.msgs.PointCloudPacked",
+            ],
         )
     )
 
     # Controller Spawn
     actions.append(
         Node(
-            namespace = normalize_namespace(namespace, False),
             package='controller_manager',
             executable='spawner',
+            namespace=join(namespace),
+            name='controller_manager_spawner_node',
+            output='screen',
             arguments=[
                 'joint_state_broadcaster',
                 'diff_drive_controller',
@@ -164,10 +202,139 @@ def generate_context(context, *args, **kwargs):
                 "--service-call-timeout", "120",
                 "--switch-timeout", "120",
             ],
-            output='screen',
-            parameters=[{'use_sim_time': True}]
+            parameters=[
+                {'use_sim_time': True},
+            ]
         )
     )
+
+    # Joy
+    components.append(
+        ComposableNode(
+            package='joy',
+            plugin='joy::Joy',
+            namespace=join(namespace),
+            name='joy_component',
+            parameters=[
+                joy_path,
+                {'use_sim_time': True},
+            ]
+        ),
+    )
+
+
+    # Teleop Twist Joy
+    actions.append(
+        Node(
+            package='teleop_twist_joy',
+            executable='teleop_node',
+            namespace=join(namespace),
+            name='teleop_twist_node',
+            parameters=[
+                teleop_twist_path,
+                {'use_sim_time': True},
+            ],
+            remappings=[
+                ('cmd_vel', 'joy/cmd_vel'),
+            ]
+        ),
+    )
+
+    # IMU Filter
+    actions.append(
+        Node(
+            package='imu_complementary_filter',
+            executable='complementary_filter_node',
+            namespace=join(namespace),
+            name='imu_filter_node',
+            output='screen',
+            parameters=[
+                imu_filter_path,
+                {'use_sim_time': True},
+            ],
+            remappings=[
+                ('imu/data_raw', 'imu/data'),
+                ('imu/data', 'imu/filtering'),
+            ],
+        )
+    )
+
+    # IMU safety
+    components.append(
+        ComposableNode(
+            package='safety_imu',
+            plugin='safety_imu::SafetyImuComponent',
+            namespace=join(namespace),
+            name='safety_imu_component',
+            parameters=[
+                safety_imu_path,
+                {'use_sim_time': True},
+            ],
+            remappings=[
+                ('imu/input', 'imu/filtering'),
+                ('imu/output', 'imu/filtered'),
+                ('odom/input', 'diff_drive_controller/odom'),
+                ('odom/output', 'odom/filtered'),
+                ('error', 'safety_imu/error'),
+            ],
+        )
+    )
+
+    # Safety Hardware
+    components.append(
+        ComposableNode(
+            package='safety_hardware',
+            plugin='safety_hardware::SafetyHardwareComponent',
+            namespace=join(namespace),
+            name='safety_hardware_component',
+            parameters=[
+                safety_hardware_path,
+                {'use_sim_time': True},
+            ],
+            remappings=[
+                ('error', 'hardware/error'),
+            ],
+            extra_arguments=[
+                {'use_intra_process_comms': False},
+            ],
+        )
+    )
+
+    # Twist Mux
+    actions.append(
+        Node(
+            package='twist_mux',
+            executable='twist_mux',
+            namespace=join(namespace),
+            name='twist_mux_node',
+            output='screen',
+            parameters=[
+                twist_mux_path,
+                {'use_sim_time': True},
+            ],
+            remappings=[
+                ('cmd_vel_out', 'diff_drive_controller/cmd_vel_unstamped'),
+            ]
+        ),
+    )
+
+    # # Lifecycle Manager
+    # components.append(
+    #     ComposableNode(
+    #         package='nav2_lifecycle_manager',
+    #         plugin='nav2_lifecycle_manager::LifecycleManager',
+    #         namespace=join(namespace),
+    #         name='hardware_lifecycle_manager_component',
+    #         parameters=[
+    #             {
+    #                 'autostart': True,
+    #                 'node_names': [
+    #                 ],
+    #                 'bond_timeout': 0.0,
+    #             },
+    #         ],
+    #     ),
+    # )
 
     # Rviz
     if rviz:
@@ -178,18 +345,16 @@ def generate_context(context, *args, **kwargs):
                 actions=[
                     *gpu_environment,
                     Node(
-                        namespace=normalize_namespace(namespace, False),
+                        namespace=join(namespace),
                         package='rviz2',
                         executable='rviz2',
                         output='screen',
                         parameters=[
-                            {
-                                'use_sim_time': True,
-                            },
+                            {'use_sim_time': True},
                         ],
                         arguments=[
                             '-d',
-                            rviz_config,
+                            rviz_path,
                         ],
                         remappings=[
                             ('/goal_pose', 'goal_pose'),
@@ -198,6 +363,20 @@ def generate_context(context, *args, **kwargs):
                         ],
                     )
                 ],
+            )
+        )
+
+    # Composoble Container
+    if components:
+        actions.append(
+            ComposableNodeContainer(
+                package='rclcpp_components',
+                executable='component_container_mt',
+                namespace=join(namespace),
+                name='component_container_node',
+                composable_node_descriptions=components,
+                output='screen',
+                emulate_tty=True,
             )
         )
 

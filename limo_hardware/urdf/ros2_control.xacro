@@ -19,21 +19,21 @@
                 <param name="wheel_rear_right_joint_velocity_command_dir">false</param>
             </hardware> -->
 
-            <!-- <hardware>
+            <hardware>
                 <plugin>joint_state_topic_hardware_interface/JointStateTopicSystem</plugin>
                 <param name="node_namespace">/${namespace}</param>
-                <param name="joint_commands_topic">/${namespace}/hardware/joint_commands</param>
+                <param name="joint_commands_topic">/${namespace}/hardware/joint_states</param>
                 <param name="joint_states_topic">/${namespace}/hardware/joint_states</param>
                 <param name="trigger_joint_command_threshold">-1</param>
-            </hardware> -->
+            </hardware>
 
             <!-- <hardware>
                 <plugin>cm_topic_hardware_component/CMTopicSystem</plugin>
             </hardware> -->
 
-            <hardware>
+            <!-- <hardware>
                 <plugin>fake_components/GenericSystem</plugin>
-            </hardware>
+            </hardware> -->
 
             <joint name="wheel_front_left_joint">
                 <state_interface name="position">

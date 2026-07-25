@@ -1,26 +1,17 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>limo_simulation</name>
+  <name>limo_navigation</name>
   <version>0.0.0</version>
-  <description>Limo Gazebo simulation launch package</description>
+  <description>Limo navigation launch package</description>
   <maintainer email="wrazzercc@gmail.com">uzir91</maintainer>
   <license>Apache-2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
-  <depend>limo_description</depend>
-  <depend>robot_state_publisher</depend>
-  <depend>ros_gz_sim</depend>
-  <depend>ros_gz_bridge</depend>
-  <depend>controller_manager</depend>
-  <depend>joy</depend>
-  <depend>teleop_twist_joy</depend>
-  <depend>imu_complementary_filter</depend>
-  <depend>safety_imu</depend>
-  <depend>safety_hardware</depend>
-  <depend>twist_mux</depend>
-  <depend>rviz2</depend>
+  <depend>limo_simulation</depend>
+  <depend>limo_hardware</depend>
+  <depend>nav2_common</depend>
 
   <exec_depend>launch</exec_depend>
   <exec_depend>launch_ros</exec_depend>

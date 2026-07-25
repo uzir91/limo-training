@@ -1,0 +1,76 @@
+/**:
+  ros__parameters:
+    # Set this to the number of topics that must be monitored.
+    deviceNum: 5
+
+    deviceTopic0: "imu/data"
+    deviceType0: "sensor_msgs/msg/Imu"
+    deviceTimeout0: 0.5
+    deviceErrorTopic0: "imu/error"
+    deviceQosDepth0: 1
+    deviceQosReliability0: "best_effort"
+    deviceQosDurability0: "volatile"
+    
+    deviceTopic1: "diff_drive_controller/odom"
+    deviceType1: "nav_msgs/msg/Odometry"
+    deviceErrorTopic1: "odom/error"
+    deviceTimeout1: 0.3
+    deviceQosDepth1: 1
+    deviceQosReliability1: "best_effort"
+    deviceQosDurability1: "volatile"
+    
+    deviceTopic2: "scan/data"
+    deviceType2: "sensor_msgs/msg/LaserScan"
+    deviceErrorTopic2: "scan/error"
+    deviceTimeout2: 0.3
+    deviceQosDepth2: 1
+    deviceQosReliability2: "best_effort"
+    deviceQosDurability2: "volatile"
+    
+    deviceTopic3: "camera/image"
+    deviceType3: "sensor_msgs/msg/Image"
+    deviceErrorTopic3: "image/error"
+    deviceTimeout3: 0.5
+    deviceQosDepth3: 1
+    deviceQosReliability3: "best_effort"
+    deviceQosDurability3: "volatile"
+    
+    deviceTopic4: "camera/points"
+    deviceType4: "sensor_msgs/msg/PointCloud2"
+    deviceErrorTopic4: "points/error"
+    deviceTimeout4: 0.5
+    deviceQosDepth4: 1
+    deviceQosReliability4: "best_effort"
+    deviceQosDurability4: "volatile"
+
+    # Example for three devices:
+    #
+    # deviceNum: 3
+    #
+    # deviceTopic0: "/imu/data"
+    # deviceType0: "sensor_msgs/msg/Imu"
+    # deviceTimeout0: 0.5
+    # deviceErrorTopic0: "/imu/error"
+    # deviceQosDepth0: 1
+    # deviceQosReliability0: "best_effort"
+    # deviceQosDurability0: "volatile"
+    #
+    # deviceTopic1: "/scan"
+    # deviceType1: "sensor_msgs/msg/LaserScan"
+    # deviceTimeout1: 0.3
+    # deviceErrorTopic1: "/scan/error"
+    # deviceQosDepth1: 1
+    # deviceQosReliability1: "best_effort"
+    # deviceQosDurability1: "volatile"
+    #
+    # Leave deviceTypeN empty to discover the type from the ROS graph.
+    # deviceTopic2: "/odom"
+    # deviceType2: ""
+    # deviceTimeout2: 1.0
+    # deviceErrorTopic2: "/odom/error"
+    # deviceQosDepth2: 1
+    # deviceQosReliability2: "best_effort"
+    # deviceQosDurability2: "volatile"
+
+    timeout_checker_frequency: 50.0
+    topic_discovery_frequency: 2.0
