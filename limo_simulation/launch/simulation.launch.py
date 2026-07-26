@@ -8,7 +8,7 @@ from launch.actions import DeclareLaunchArgument, GroupAction, IncludeLaunchDesc
 from launch.substitutions import Command, FindExecutable, PathJoinSubstitution, LaunchConfiguration
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.event_handlers import OnProcessExit
-from launch_ros.actions import LifecycleNode, Node, PushRosNamespace, ComposableNodeContainer
+from launch_ros.actions import LifecycleNode, Node, PushRosNamespace, ComposableNodeContainer, LoadComposableNodes
 from launch_ros.substitutions import FindPackageShare
 from launch_ros.parameter_descriptions import ParameterValue
 from launch_ros.descriptions import ParameterFile, ComposableNode
@@ -209,10 +209,11 @@ def generate_context(context, *args, **kwargs):
     )
 
     # Joy
-    components.append(
-        ComposableNode(
+    actions.append(
+        Node(
             package='joy',
-            plugin='joy::Joy',
+            # plugin='joy::Joy',
+            executable='joy_node',
             namespace=join(namespace),
             name='joy_component',
             parameters=[
@@ -260,10 +261,11 @@ def generate_context(context, *args, **kwargs):
     )
 
     # IMU safety
-    components.append(
-        ComposableNode(
+    actions.append(
+        Node(
             package='safety_imu',
-            plugin='safety_imu::SafetyImuComponent',
+            # plugin='safety_imu::SafetyImuComponent',
+            executable='safety_imu_node',
             namespace=join(namespace),
             name='safety_imu_component',
             parameters=[
@@ -281,10 +283,11 @@ def generate_context(context, *args, **kwargs):
     )
 
     # Safety Hardware
-    components.append(
-        ComposableNode(
+    actions.append(
+        Node(
             package='safety_hardware',
-            plugin='safety_hardware::SafetyHardwareComponent',
+            # plugin='safety_hardware::SafetyHardwareComponent',
+            executable='safety_hardware_node',
             namespace=join(namespace),
             name='safety_hardware_component',
             parameters=[
@@ -294,9 +297,9 @@ def generate_context(context, *args, **kwargs):
             remappings=[
                 ('error', 'hardware/error'),
             ],
-            extra_arguments=[
-                {'use_intra_process_comms': False},
-            ],
+            # extra_arguments=[
+            #     {'use_intra_process_comms': False},
+            # ],
         )
     )
 
@@ -367,17 +370,36 @@ def generate_context(context, *args, **kwargs):
         )
 
     # Composoble Container
+    actions.append(
+        Node(
+            package='rclcpp_components',
+            executable='component_container_isolated',
+            name='component_container_node',
+            namespace=join(namespace),
+            output='screen'
+        ),
+    )
+
+    # Load composable component
     if components:
         actions.append(
-            ComposableNodeContainer(
-                package='rclcpp_components',
-                executable='component_container_mt',
-                namespace=join(namespace),
-                name='component_container_node',
-                composable_node_descriptions=components,
-                output='screen',
-                emulate_tty=True,
-            )
+            LoadComposableNodes(
+                target_container=(namespace, '/', 'component_container_node'),
+                composable_node_descriptions=components
+            ),
         )
+
+    # if components:
+    #     actions.append(
+    #         ComposableNodeContainer(
+    #             package='rclcpp_components',
+    #             executable='component_container_mt',
+    #             namespace=join(namespace),
+    #             name='component_container_node',
+    #             composable_node_descriptions=components,
+    #             output='screen',
+    #             emulate_tty=True,
+    #         )
+    #     )
 
     return actions

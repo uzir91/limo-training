@@ -1,4 +1,5 @@
-from os.path import join, exists
+from os.path import join, exists, expanduser
+from pathlib import Path
 from os import popen, environ
 from ament_index_python.packages import get_package_share_directory
 
@@ -8,12 +9,29 @@ from launch.actions import DeclareLaunchArgument, GroupAction, IncludeLaunchDesc
 from launch.substitutions import Command, FindExecutable, PathJoinSubstitution, LaunchConfiguration
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.event_handlers import OnProcessExit
-from launch_ros.actions import LifecycleNode, Node, PushRosNamespace, ComposableNodeContainer
+from launch_ros.actions import LifecycleNode, Node, PushRosNamespace, ComposableNodeContainer, LoadComposableNodes
 from launch_ros.substitutions import FindPackageShare
 from launch_ros.parameter_descriptions import ParameterValue
 from launch_ros.descriptions import ParameterFile, ComposableNode
 
 from nav2_common.launch import RewrittenYaml
+
+def replace_extension(path: str, extension: str) -> str:
+    path = path.strip()
+    extension = extension.strip()
+
+    if not path:
+        return ""
+
+    file_path = Path(path).expanduser()
+
+    if extension == "":
+        return str(file_path.with_suffix(""))
+
+    if not extension.startswith("."):
+        extension = f".{extension}"
+
+    return str(file_path.with_suffix(extension))
 
 def generate_launch_description():
     return LaunchDescription([
@@ -24,6 +42,7 @@ def generate_context(context, *args, **kwargs):
     # --- Resolve arguments ---
     GetArgument = context.launch_configurations.get
     FindPackage = get_package_share_directory
+    home_dir = expanduser('~')
 
     limo_navigation_pkg = FindPackage('limo_navigation')
     limo_simulation_pkg = FindPackage('limo_simulation')
@@ -38,15 +57,17 @@ def generate_context(context, *args, **kwargs):
     rviz = GetArgument('rviz', 'true').lower() in ['true', '1', 'yes']
     gui = GetArgument('gui', 'true').lower() in ['true', '1', 'yes']
     mapping = GetArgument('mapping', 'true').lower() in ['true', '1', 'yes']
-    map_filename = GetArgument('map_filename', '')
+    map_filename = expanduser(GetArgument('map_filename', '~/limo_world'))
     ekf_odom_filename = GetArgument('ekf_odom_filename', 'ekf_odom.yaml')
     slam_filename = GetArgument('slam_filename', 'slam.yaml')
     localization_filename = GetArgument('localization_filename', 'localization.yaml')
+    controller_server_filename = GetArgument('controller_server_filename', 'controller_server.yaml')
     rviz_filename = GetArgument('rviz_filename', 'simulation.rviz')
 
     ekf_odom_path = GetArgument('ekf_odom_path', join(limo_navigation_pkg, 'config', namespace, ekf_odom_filename))
     slam_path = GetArgument('slam_path', join(limo_navigation_pkg, 'config', namespace, slam_filename))
     localization_path = GetArgument('localization_path', join(limo_navigation_pkg, 'config', namespace, localization_filename))
+    controller_server_path = GetArgument('controller_server_path', join(limo_navigation_pkg, 'config', namespace, controller_server_filename))
     rviz_path = GetArgument('rviz_path', join(limo_navigation_pkg, 'rviz', rviz_filename))
 
     if not exists(ekf_odom_path):
@@ -55,6 +76,8 @@ def generate_context(context, *args, **kwargs):
         slam_path = join(limo_navigation_pkg, 'config', 'slam.yaml')
     if not exists(localization_path):
         localization_path = join(limo_navigation_pkg, 'config', 'localization.yaml')
+    if not exists(controller_server_path):
+        controller_server_path = join(limo_navigation_pkg, 'config', 'controller_server.yaml')
     if not exists(rviz_path):
         rviz_path = join(limo_navigation_pkg, 'rviz', 'navigation.rviz')
 
@@ -62,7 +85,8 @@ def generate_context(context, *args, **kwargs):
     actions = []
     components = []
     slam_lifecycles = []
-    localization_lifecycles = []
+    nav2_lifecycles = []
+    isolated_lifecycles = []
 
     if gpu == 'nvidia':
         gpu_environment = [
@@ -133,7 +157,7 @@ def generate_context(context, *args, **kwargs):
                     ),
                     allow_substs=True,
                 ),
-                {'use_sim_time': True},
+                {'use_sim_time': simulation},
             ],
             remappings=[
                 ('odometry/filtered', 'odom_ekf/filtered'),
@@ -142,104 +166,380 @@ def generate_context(context, *args, **kwargs):
     )
 
     # SLAM node
-    actions.append(
-        Node(
-            package='slam_toolbox',
-            executable='async_slam_toolbox_node',
-            namespace=join(namespace),
-            name='slam_node',
-            output='screen',
-            parameters=[
-                ParameterFile(
-                    RewrittenYaml(
-                        source_file=slam_path,
-                        root_key=None,
-                        param_rewrites={
-                            'odom_frame': join(namespace, 'odom'),
-                            'base_frame': join(namespace, 'base_footprint'),
-                        },
-                        convert_types=True,
-                    ),
-                    allow_substs=True,
-                ),
-                {'map_file_name': map_filename},
-                {'map_start_pose': [0.0, 0.0, 0.0]},
-                {'use_sim_time': True},
-            ],
-            remappings=[
-                # ('/map', join(namespace, 'map')),
-                # ('/map_metadata', join(namespace, 'map_metadata')),
-            ],
-        ),
-    )
-    slam_lifecycles.append('slam_node');
+    # slam_node = 'slam_node'
+    if mapping:
+        actions.append(
+            Node(
+                package='slam_toolbox',
+                executable='async_slam_toolbox_node',
+                namespace=join(namespace),
+                name='slam_toolbox',
+                output='screen',
+                parameters=[
+                    # ParameterFile(
+                    #     RewrittenYaml(
+                    #         source_file=slam_path,
+                    #         root_key=None,
+                    #         param_rewrites={
+                    #             'odom_frame': join(namespace, 'odom'),
+                    #             'base_frame': join(namespace, 'base_footprint'),
+                    #         },
+                    #         convert_types=True,
+                    #     ),
+                    #     allow_substs=True,
+                    # ),
+                    slam_path,
+                    {'odom_frame': join(namespace, 'odom')},
+                    {'base_frame': join(namespace, 'base_footprint')},
+                    {'map_file_name': replace_extension(map_filename, '')},
+                    {'map_start_pose': [0.0, 0.0, 0.0]},
+                    {'use_sim_time': simulation},
+                ],
+                remappings=[
+                ],
+            ),
+        )
+        slam_lifecycles.append('slam_toolbox');
+    else:
+        # Localization node
+        actions.append(
+            Node(
+                package='slam_toolbox',
+                executable='localization_slam_toolbox_node',
+                namespace=join(namespace),
+                name='slam_toolbox',
+                output='screen',
+                parameters=[
+                    # ParameterFile(
+                    #     RewrittenYaml(
+                    #         source_file=localization_path,
+                    #         root_key=None,
+                    #         param_rewrites={
+                    #             'odom_frame': join(namespace, 'odom'),
+                    #             'base_frame': join(namespace, 'base_footprint'),
+                    #         },
+                    #         convert_types=True,
+                    #     ),
+                    #     allow_substs=True,
+                    # ),
+                    localization_path,
+                    {'odom_frame': join(namespace, 'odom')},
+                    {'base_frame': join(namespace, 'base_footprint')},
+                    {'map_file_name': replace_extension(map_filename, '')},
+                    {'map_start_pose': [0.0, 0.0, 0.0]},
+                    {'use_sim_time': simulation},
+                ],
+                remappings=[
+                ],
+            ),
+        )
+        slam_lifecycles.append('slam_toolbox');
 
-    # Localization node
+    # # Composoble Container
+    # actions.append(
+    #     Node(
+    #         package='rclcpp_components',
+    #         executable='component_container_isolated',
+    #         name='component_container_node',
+    #         namespace=join(namespace),
+    #         output='screen'
+    #     ),
+    # )
+
     actions.append(
         Node(
-            package='slam_toolbox',
-            executable='localization_slam_toolbox_node',
+            package='nav2_bt_navigator',
+            # plugin='nav2_bt_navigator::BtNavigator',
+            executable='bt_navigator',
             namespace=join(namespace),
-            name='localization_node',
-            output='screen',
+            name='bt_navigator',
             parameters=[
                 ParameterFile(
                     RewrittenYaml(
-                        source_file=localization_path,
-                        root_key=None,
+                        source_file=controller_server_path,
+                        root_key=join(namespace),
                         param_rewrites={
-                            'odom_frame': join(namespace, 'odom'),
-                            'base_frame': join(namespace, 'base_footprint'),
+                            'bt_navigator.ros__parameters.use_sim_time': f"{simulation}",
+                            'bt_navigator.ros__parameters.global_frame': 'map',
+                            'bt_navigator.ros__parameters.robot_base_frame': join(namespace, 'base_footprint'),
+                            'bt_navigator_navigate_through_poses_rclcpp_node.ros__parameters.use_sim_time': f"{simulation}",
+                            'bt_navigator_navigate_to_pose_rclcpp_node.ros__parameters.use_sim_time': f"{simulation}",
                         },
                         convert_types=True,
                     ),
                     allow_substs=True,
                 ),
-                {'map_file_name': map_filename},
-                {'map_start_pose': [0.0, 0.0, 0.0]},
-                {'use_sim_time': True},
+                {'use_sim_time': simulation},
             ],
             remappings=[
-                # ('/map', join(namespace, 'map')),
-                # ('/map_metadata', join(namespace, 'map_metadata')),
             ],
         ),
     )
-    localization_lifecycles.append('localization_node');
+    nav2_lifecycles.append('bt_navigator');
+
+    actions.append(
+        Node(
+            package='nav2_planner',
+            # plugin='nav2_planner::PlannerServer',
+            executable='planner_server',
+            namespace=join(namespace),
+            name='planner_server',
+            parameters=[
+                ParameterFile(
+                    RewrittenYaml(
+                        source_file=controller_server_path,
+                        root_key=join(namespace),
+                        param_rewrites={
+                            'global_costmap.global_costmap.ros__parameters.use_sim_time': f"{simulation}",
+                            'global_costmap.global_costmap.ros__parameters.global_frame': 'map',
+                            'global_costmap.global_costmap.ros__parameters.robot_base_frame': join(namespace, 'base_footprint'),
+                        },
+                        convert_types=True,
+                    ),
+                    allow_substs=True,
+                ),
+                {'use_sim_time': simulation},
+            ],
+            remappings=[
+                ('scan', join('/', namespace, 'scan/data')),
+                ('map', join('/', namespace, 'map')),
+            ],
+        ),
+    )
+    nav2_lifecycles.append('planner_server');
+
+    actions.append(
+        Node(
+            package='nav2_controller',
+            # plugin='nav2_controller::ControllerServer',
+            executable='controller_server',
+            namespace=join(namespace),
+            name='controller_server',
+            parameters=[
+                ParameterFile(
+                    RewrittenYaml(
+                        source_file=controller_server_path,
+                        root_key=join(namespace),
+                        param_rewrites={
+                            'local_costmap.local_costmap.ros__parameters.use_sim_time': f"{simulation}",
+                            'local_costmap.local_costmap.ros__parameters.global_frame': join(namespace, 'odom'),
+                            'local_costmap.local_costmap.ros__parameters.robot_base_frame': join(namespace, 'base_footprint'),
+                            'local_costmap.local_costmap.ros__parameters.speed_filter.enabled': str(bool(map_filename)).lower(),
+                        },
+                        convert_types=True,
+                    ),
+                    allow_substs=True,
+                ),
+                {'use_sim_time': simulation},
+            ],
+            remappings=[
+                ('scan', join('/', namespace, 'scan/data')),
+                ('map', join('/', namespace, 'map')),
+                (join('/', namespace, 'local_costmap/speed_costmap_filter_info'), join('/', namespace, 'speed_costmap_filter_info')),
+                (join('/', namespace, 'local_costmap/speed_limit'), join('/', namespace, 'speed_limit')),
+                ('cmd_vel', 'nav/cmd_vel'),
+                ('odom', 'odom_ekf/filtered'),
+            ],
+        )
+    )
+    nav2_lifecycles.append('controller_server');
+
+    if bool(map_filename):
+        actions.append(
+            Node(
+                package='nav2_map_server',
+                executable='costmap_filter_info_server',
+                namespace=join(namespace),
+                name='speed_costmap_filter_info_server',
+                parameters=[
+                    ParameterFile(
+                        RewrittenYaml(
+                            source_file=controller_server_path,
+                            root_key=join(namespace),
+                            param_rewrites={
+                            },
+                            convert_types=True,
+                        ),
+                        allow_substs=True,
+                    ),
+                    {'use_sim_time': simulation},
+                    {'mask_topic': join('/', namespace, 'speed_filter_mask')},
+                ],
+                remappings=[
+                ],
+            ),
+        )
+        nav2_lifecycles.append('speed_costmap_filter_info_server');
+
+        actions.append(
+            Node(
+                package='nav2_map_server',
+                executable='map_server',
+                namespace=join(namespace),
+                name='speed_filter_mask_server',
+                parameters=[
+                    ParameterFile(
+                        RewrittenYaml(
+                            source_file=controller_server_path,
+                            root_key=join(namespace),
+                            param_rewrites={
+                            },
+                            convert_types=True,
+                        ),
+                        allow_substs=True,
+                    ),
+                    {'use_sim_time': simulation},
+                    {'yaml_filename': replace_extension(map_filename, 'speed.yaml')},
+                ],
+                remappings=[
+                ],
+            ),
+        )
+        nav2_lifecycles.append('speed_filter_mask_server');
+
+    actions.append(
+        Node(
+            package='nav2_behaviors',
+            # plugin='behavior_server::BehaviorServer',
+            executable='behavior_server',
+            namespace=join(namespace),
+            name='behavior_server',
+            parameters=[
+                ParameterFile(
+                    RewrittenYaml(
+                        source_file=controller_server_path,
+                        root_key=join(namespace),
+                        param_rewrites={
+                            'behavior_server.ros__parameters.use_sim_time': f"{simulation}",
+                            'behavior_server.ros__parameters.global_frame': join(namespace, 'odom'),
+                            'behavior_server.ros__parameters.robot_base_frame': join(namespace, 'base_footprint'),
+                        },
+                        convert_types=True,
+                    ),
+                    allow_substs=True,
+                ),
+                {'use_sim_time': simulation},
+            ],
+            remappings=[
+                ('cmd_vel', 'nav/cmd_vel'),
+            ],
+        ),
+    )
+    nav2_lifecycles.append('behavior_server');
+
+    actions.append(
+        Node(
+            package='nav2_smoother',
+            # plugin='nav2_smoother::SmootherServer',
+            executable='smoother_server',
+            namespace=join(namespace),
+            name='smoother_server',
+            parameters=[
+                ParameterFile(
+                    RewrittenYaml(
+                        source_file=controller_server_path,
+                        root_key=join(namespace),
+                        param_rewrites={
+                            'smoother_server.ros__parameters.use_sim_time': f"{simulation}",
+                        },
+                        convert_types=True,
+                    ),
+                    allow_substs=True,
+                ),
+                {'use_sim_time': simulation},
+            ],
+            remappings=[
+            ],
+        ),
+    )
+    nav2_lifecycles.append('smoother_server');
+
+    actions.append(
+        Node(
+            package='nav2_waypoint_follower',
+            # plugin='nav2_waypoint_follower::WaypointFollower',
+            executable='waypoint_follower',
+            namespace=join(namespace),
+            name='waypoint_follower',
+            parameters=[
+                ParameterFile(
+                    RewrittenYaml(
+                        source_file=controller_server_path,
+                        root_key=join(namespace),
+                        param_rewrites={
+                            'waypoint_follower.ros__parameters.use_sim_time': f"{simulation}",
+                        },
+                        convert_types=True,
+                    ),
+                    allow_substs=True,
+                ),
+                {'use_sim_time': simulation},
+            ],
+            remappings=[
+            ],
+        ),
+    )
+    nav2_lifecycles.append('waypoint_follower');
 
     # SLAM Lifecycle Manager
-    components.append(
-        ComposableNode(
-            package='nav2_lifecycle_manager',
-            plugin='nav2_lifecycle_manager::LifecycleManager',
-            namespace=join(namespace),
-            name='slam_lifecycle_manager_component',
-            parameters=[
-                {
-                    'autostart': mapping,
-                    'node_names': slam_lifecycles,
-                    'bond_timeout': 0.0,
-                },
-            ],
-        ),
-    )
+    if slam_lifecycles:
+        actions.append(
+            Node(
+                package='nav2_lifecycle_manager',
+                # plugin='nav2_lifecycle_manager::LifecycleManager',
+                executable='lifecycle_manager',
+                namespace=join(namespace),
+                name='slam_lifecycle_manager',
+                parameters=[
+                    {
+                        'use_sim_time': simulation,
+                        'autostart': True,
+                        'node_names': slam_lifecycles,
+                        'bond_timeout': 0.0,
+                    },
+                ],
+            ),
+        )
 
-    # Localization Lifecycle Manager
-    components.append(
-        ComposableNode(
-            package='nav2_lifecycle_manager',
-            plugin='nav2_lifecycle_manager::LifecycleManager',
-            namespace=join(namespace),
-            name='localization_lifecycle_manager_component',
-            parameters=[
-                {
-                    'autostart': not mapping,
-                    'node_names': localization_lifecycles,
-                    'bond_timeout': 0.0,
-                },
-            ],
-        ),
-    )
+    # Nav2 Lifecycle Manager
+    if nav2_lifecycles:
+        actions.append(
+            Node(
+                package='nav2_lifecycle_manager',
+                # plugin='nav2_lifecycle_manager::LifecycleManager',
+                executable='lifecycle_manager',
+                namespace=join(namespace),
+                name='nav2_lifecycle_manager',
+                parameters=[
+                    {
+                        'use_sim_time': simulation,
+                        'autostart': True,
+                        'node_names': nav2_lifecycles,
+                        'bond_timeout': 0.0,
+                    },
+                ],
+            ),
+        )
+
+    # Isolated Lifecycle Manager
+    if isolated_lifecycles:
+        actions.append(
+            Node(
+                package='nav2_lifecycle_manager',
+                # plugin='nav2_lifecycle_manager::LifecycleManager',
+                executable='lifecycle_manager',
+                namespace=join(namespace),
+                name='isolated_lifecycle_manager',
+                parameters=[
+                    {
+                        'use_sim_time': simulation,
+                        'autostart': True,
+                        'node_names': isolated_lifecycles,
+                        'bond_timeout': 0.0,
+                    },
+                ],
+            ),
+        )
 
     # Rviz
     if rviz:
@@ -251,6 +551,7 @@ def generate_context(context, *args, **kwargs):
                     *gpu_environment,
                     Node(
                         namespace=join(namespace),
+                        name='rviz2',
                         package='rviz2',
                         executable='rviz2',
                         output='screen',
@@ -265,33 +566,18 @@ def generate_context(context, *args, **kwargs):
                             ('/goal_pose', 'goal_pose'),
                             ('/clicked_point', 'clicked_point'),
                             ('/initialpose', 'initialpose'),
-                            ('/slam_toolbox/serialize_map', 'slam_toolbox/serialize_map'),
-                            ('/slam_toolbox/deserialize_map', 'slam_toolbox/deserialize_map'),
-                            ('/slam_toolbox/save_map', 'slam_toolbox/save_map'),
-                            ('/slam_toolbox/clear_changes', 'slam_toolbox/clear_changes'),
-                            ('/slam_toolbox/manual_loop_closure', 'slam_toolbox/manual_loop_closure'),
-                            ('/slam_toolbox/clear_queue', 'slam_toolbox/clear_queue'),
-                            ('/slam_toolbox/toggle_interactive_mode', 'slam_toolbox/toggle_interactive_mode'),
-                            ('/slam_toolbox/pause_new_measurements', 'slam_toolbox/pause_new_measurements'),
-                            ('/slam_toolbox/add_submap', 'slam_toolbox/add_submap'),
-                            ('/slam_toolbox/merge_submaps', 'slam_toolbox/merge_submaps'),
                         ],
                     )
                 ],
             )
         )
 
-    # Composoble Container
+    # # Load composable component
     if components:
         actions.append(
-            ComposableNodeContainer(
-                package='rclcpp_components',
-                executable='component_container_mt',
-                namespace=join(namespace),
-                name='component_container_node',
+            LoadComposableNodes(
+                target_container=(namespace, '/', 'component_container_node'),
                 composable_node_descriptions=components,
-                output='screen',
-                emulate_tty=True,
             )
         )
 
