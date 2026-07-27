@@ -57,17 +57,21 @@ def generate_context(context, *args, **kwargs):
     rviz = GetArgument('rviz', 'true').lower() in ['true', '1', 'yes']
     gui = GetArgument('gui', 'true').lower() in ['true', '1', 'yes']
     mapping = GetArgument('mapping', 'true').lower() in ['true', '1', 'yes']
-    map_filename = expanduser(GetArgument('map_filename', '~/limo_world'))
+    map_filename = expanduser(GetArgument('map_filename', ''))
     ekf_odom_filename = GetArgument('ekf_odom_filename', 'ekf_odom.yaml')
     slam_filename = GetArgument('slam_filename', 'slam.yaml')
     localization_filename = GetArgument('localization_filename', 'localization.yaml')
     controller_server_filename = GetArgument('controller_server_filename', 'controller_server.yaml')
+    default_nav_through_poses_bt_xml_filename = GetArgument('default_nav_through_poses_bt_xml_filename', 'navigate_through_poses_w_replanning_and_recovery.xml')
+    default_nav_to_pose_bt_xml_filename = GetArgument('default_nav_to_pose_bt_xml_filename', 'navigate_to_pose_w_replanning_and_recovery.xml')
     rviz_filename = GetArgument('rviz_filename', 'simulation.rviz')
 
     ekf_odom_path = GetArgument('ekf_odom_path', join(limo_navigation_pkg, 'config', namespace, ekf_odom_filename))
     slam_path = GetArgument('slam_path', join(limo_navigation_pkg, 'config', namespace, slam_filename))
     localization_path = GetArgument('localization_path', join(limo_navigation_pkg, 'config', namespace, localization_filename))
     controller_server_path = GetArgument('controller_server_path', join(limo_navigation_pkg, 'config', namespace, controller_server_filename))
+    default_nav_through_poses_bt_xml_path = GetArgument('default_nav_through_poses_bt_xml_path', join(limo_navigation_pkg, 'config', namespace, default_nav_through_poses_bt_xml_filename))
+    default_nav_to_pose_bt_xml_path = GetArgument('default_nav_to_pose_bt_xml_path', join(limo_navigation_pkg, 'config', namespace, default_nav_to_pose_bt_xml_filename))
     rviz_path = GetArgument('rviz_path', join(limo_navigation_pkg, 'rviz', rviz_filename))
 
     if not exists(ekf_odom_path):
@@ -78,15 +82,19 @@ def generate_context(context, *args, **kwargs):
         localization_path = join(limo_navigation_pkg, 'config', 'localization.yaml')
     if not exists(controller_server_path):
         controller_server_path = join(limo_navigation_pkg, 'config', 'controller_server.yaml')
+    if not exists(default_nav_through_poses_bt_xml_path):
+        default_nav_through_poses_bt_xml_path = join(limo_navigation_pkg, 'config', 'navigate_through_poses_w_replanning_and_recovery.xml')
+    if not exists(default_nav_to_pose_bt_xml_path):
+        default_nav_to_pose_bt_xml_path = join(limo_navigation_pkg, 'config', 'navigate_to_pose_w_replanning_and_recovery.xml')
     if not exists(rviz_path):
         rviz_path = join(limo_navigation_pkg, 'rviz', 'navigation.rviz')
 
     gpu_environment = []
     actions = []
     components = []
-    slam_lifecycles = []
-    nav2_lifecycles = []
-    isolated_lifecycles = []
+    lifecycles_localization = []
+    lifecycles_navigation = []
+    lifecycles_isolated = []
 
     if gpu == 'nvidia':
         gpu_environment = [
@@ -199,7 +207,7 @@ def generate_context(context, *args, **kwargs):
                 ],
             ),
         )
-        slam_lifecycles.append('slam_toolbox');
+        lifecycles_localization.append('slam_toolbox');
     else:
         # Localization node
         actions.append(
@@ -233,7 +241,7 @@ def generate_context(context, *args, **kwargs):
                 ],
             ),
         )
-        slam_lifecycles.append('slam_toolbox');
+        lifecycles_localization.append('slam_toolbox');
 
     # # Composoble Container
     # actions.append(
@@ -259,9 +267,6 @@ def generate_context(context, *args, **kwargs):
                         source_file=controller_server_path,
                         root_key=join(namespace),
                         param_rewrites={
-                            'bt_navigator.ros__parameters.use_sim_time': f"{simulation}",
-                            'bt_navigator.ros__parameters.global_frame': 'map',
-                            'bt_navigator.ros__parameters.robot_base_frame': join(namespace, 'base_footprint'),
                             'bt_navigator_navigate_through_poses_rclcpp_node.ros__parameters.use_sim_time': f"{simulation}",
                             'bt_navigator_navigate_to_pose_rclcpp_node.ros__parameters.use_sim_time': f"{simulation}",
                         },
@@ -270,12 +275,17 @@ def generate_context(context, *args, **kwargs):
                     allow_substs=True,
                 ),
                 {'use_sim_time': simulation},
+                {'global_frame': 'map'},
+                {'robot_base_frame': join(namespace, 'base_footprint')},
+                {'default_nav_through_poses_bt_xml': default_nav_through_poses_bt_xml_path},
+                {'default_nav_to_pose_bt_xml': default_nav_to_pose_bt_xml_path},
             ],
             remappings=[
+                ('odom', 'odom_ekf/filtered'),
             ],
         ),
     )
-    nav2_lifecycles.append('bt_navigator');
+    lifecycles_navigation.append('bt_navigator');
 
     actions.append(
         Node(
@@ -306,7 +316,7 @@ def generate_context(context, *args, **kwargs):
             ],
         ),
     )
-    nav2_lifecycles.append('planner_server');
+    lifecycles_navigation.append('planner_server');
 
     actions.append(
         Node(
@@ -324,7 +334,7 @@ def generate_context(context, *args, **kwargs):
                             'local_costmap.local_costmap.ros__parameters.use_sim_time': f"{simulation}",
                             'local_costmap.local_costmap.ros__parameters.global_frame': join(namespace, 'odom'),
                             'local_costmap.local_costmap.ros__parameters.robot_base_frame': join(namespace, 'base_footprint'),
-                            'local_costmap.local_costmap.ros__parameters.speed_filter.enabled': str(bool(map_filename)).lower(),
+                            'local_costmap.local_costmap.ros__parameters.speed_filter.enabled': str(Path(replace_extension(map_filename, '.speed.yaml')).exists()).lower(),
                         },
                         convert_types=True,
                     ),
@@ -342,9 +352,9 @@ def generate_context(context, *args, **kwargs):
             ],
         )
     )
-    nav2_lifecycles.append('controller_server');
+    lifecycles_navigation.append('controller_server');
 
-    if bool(map_filename):
+    if Path(replace_extension(map_filename, '.speed.yaml')).exists():
         actions.append(
             Node(
                 package='nav2_map_server',
@@ -369,7 +379,7 @@ def generate_context(context, *args, **kwargs):
                 ],
             ),
         )
-        nav2_lifecycles.append('speed_costmap_filter_info_server');
+        lifecycles_navigation.append('speed_costmap_filter_info_server');
 
         actions.append(
             Node(
@@ -395,7 +405,7 @@ def generate_context(context, *args, **kwargs):
                 ],
             ),
         )
-        nav2_lifecycles.append('speed_filter_mask_server');
+        lifecycles_navigation.append('speed_filter_mask_server');
 
     actions.append(
         Node(
@@ -425,7 +435,7 @@ def generate_context(context, *args, **kwargs):
             ],
         ),
     )
-    nav2_lifecycles.append('behavior_server');
+    lifecycles_navigation.append('behavior_server');
 
     actions.append(
         Node(
@@ -452,7 +462,7 @@ def generate_context(context, *args, **kwargs):
             ],
         ),
     )
-    nav2_lifecycles.append('smoother_server');
+    lifecycles_navigation.append('smoother_server');
 
     actions.append(
         Node(
@@ -479,22 +489,22 @@ def generate_context(context, *args, **kwargs):
             ],
         ),
     )
-    nav2_lifecycles.append('waypoint_follower');
+    lifecycles_navigation.append('waypoint_follower');
 
     # SLAM Lifecycle Manager
-    if slam_lifecycles:
+    if lifecycles_localization:
         actions.append(
             Node(
                 package='nav2_lifecycle_manager',
                 # plugin='nav2_lifecycle_manager::LifecycleManager',
                 executable='lifecycle_manager',
                 namespace=join(namespace),
-                name='slam_lifecycle_manager',
+                name='lifecycle_manager_localization',
                 parameters=[
                     {
                         'use_sim_time': simulation,
                         'autostart': True,
-                        'node_names': slam_lifecycles,
+                        'node_names': lifecycles_localization,
                         'bond_timeout': 0.0,
                     },
                 ],
@@ -502,19 +512,19 @@ def generate_context(context, *args, **kwargs):
         )
 
     # Nav2 Lifecycle Manager
-    if nav2_lifecycles:
+    if lifecycles_navigation:
         actions.append(
             Node(
                 package='nav2_lifecycle_manager',
                 # plugin='nav2_lifecycle_manager::LifecycleManager',
                 executable='lifecycle_manager',
                 namespace=join(namespace),
-                name='nav2_lifecycle_manager',
+                name='lifecycle_manager_navigation',
                 parameters=[
                     {
                         'use_sim_time': simulation,
                         'autostart': True,
-                        'node_names': nav2_lifecycles,
+                        'node_names': lifecycles_navigation,
                         'bond_timeout': 0.0,
                     },
                 ],
@@ -522,19 +532,19 @@ def generate_context(context, *args, **kwargs):
         )
 
     # Isolated Lifecycle Manager
-    if isolated_lifecycles:
+    if lifecycles_isolated:
         actions.append(
             Node(
                 package='nav2_lifecycle_manager',
                 # plugin='nav2_lifecycle_manager::LifecycleManager',
                 executable='lifecycle_manager',
                 namespace=join(namespace),
-                name='isolated_lifecycle_manager',
+                name='lifecycle_manager_isolated',
                 parameters=[
                     {
                         'use_sim_time': simulation,
                         'autostart': True,
-                        'node_names': isolated_lifecycles,
+                        'node_names': lifecycles_isolated,
                         'bond_timeout': 0.0,
                     },
                 ],
