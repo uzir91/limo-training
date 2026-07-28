@@ -16,7 +16,7 @@ find_package(yaml_cpp_vendor REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
-find_package(gazebo_ros QUIET) # Only if using Gazebo
+# find_package(gazebo_ros QUIET) # Only if using Gazebo
 
 add_library(${PROJECT_NAME}_node SHARED
   src/limo_interface_node.cpp
