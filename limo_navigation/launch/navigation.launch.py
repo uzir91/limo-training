@@ -318,6 +318,7 @@ def generate_context(context, *args, **kwargs):
     )
     lifecycles_navigation.append('planner_server');
 
+    speed_map_filename = replace_extension(map_filename, '.speed.yaml')
     actions.append(
         Node(
             package='nav2_controller',
@@ -334,7 +335,7 @@ def generate_context(context, *args, **kwargs):
                             'local_costmap.local_costmap.ros__parameters.use_sim_time': f"{simulation}",
                             'local_costmap.local_costmap.ros__parameters.global_frame': join(namespace, 'odom'),
                             'local_costmap.local_costmap.ros__parameters.robot_base_frame': join(namespace, 'base_footprint'),
-                            'local_costmap.local_costmap.ros__parameters.speed_filter.enabled': str(Path(replace_extension(map_filename, '.speed.yaml')).exists()).lower(),
+                            'local_costmap.local_costmap.ros__parameters.speed_filter.enabled': str(Path(speed_map_filename).exists() and bool(speed_map_filename)).lower(),
                         },
                         convert_types=True,
                     ),
@@ -354,7 +355,7 @@ def generate_context(context, *args, **kwargs):
     )
     lifecycles_navigation.append('controller_server');
 
-    if Path(replace_extension(map_filename, '.speed.yaml')).exists():
+    if Path(speed_map_filename).exists() and bool(speed_map_filename):
         actions.append(
             Node(
                 package='nav2_map_server',
