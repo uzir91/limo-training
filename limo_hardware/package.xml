@@ -10,6 +10,7 @@
   <buildtool_depend>ament_cmake</buildtool_depend>
 
   <depend>rviz2</depend>
+  <depend>ros2_controllers</depend>
   <depend>controller_manager</depend>
   <depend>limo_description</depend>
 

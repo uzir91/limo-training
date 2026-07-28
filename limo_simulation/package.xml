@@ -13,6 +13,8 @@
   <depend>robot_state_publisher</depend>
   <depend>ros_gz_sim</depend>
   <depend>ros_gz_bridge</depend>
+  <depend>gz_ros2_control</depend>
+  <depend>ros2_controllers</depend>
   <depend>controller_manager</depend>
   <depend>joy</depend>
   <depend>teleop_twist_joy</depend>
