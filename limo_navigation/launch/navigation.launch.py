@@ -120,28 +120,49 @@ def generate_context(context, *args, **kwargs):
             ),
         ]
 
-    # Limo simulation
-    actions.append(
-        GroupAction(
-            scoped=True,
-            forwarding=False,
-            actions=[
-                *gpu_environment,
-                IncludeLaunchDescription(
-                    PythonLaunchDescriptionSource(
-                        limo_simulation_launch
-                    ),
-                    launch_arguments={
-                        'namespace': f'{join(namespace)}',
-                        'gpu': f'{gpu}',
-                        'simulation': f'{simulation}',
-                        'gui': f'{gui}',
-                        'rviz': f'False',
-                    }.items(),
-                )
-            ],
+    if bool(simulation):
+        # Limo simulation
+        actions.append(
+            GroupAction(
+                scoped=True,
+                forwarding=False,
+                actions=[
+                    *gpu_environment,
+                    IncludeLaunchDescription(
+                        PythonLaunchDescriptionSource(
+                            limo_simulation_launch
+                        ),
+                        launch_arguments={
+                            'namespace': f'{join(namespace)}',
+                            'gpu': f'{gpu}',
+                            'gui': f'{gui}',
+                            'rviz': f'False',
+                        }.items(),
+                    )
+                ],
+            )
         )
-    )
+    else:
+        # Limo hardware
+        actions.append(
+            GroupAction(
+                scoped=True,
+                forwarding=False,
+                actions=[
+                    *gpu_environment,
+                    IncludeLaunchDescription(
+                        PythonLaunchDescriptionSource(
+                            limo_hardware_launch
+                        ),
+                        launch_arguments={
+                            'namespace': f'{join(namespace)}',
+                            'gpu': f'{gpu}',
+                            'rviz': f'False',
+                        }.items(),
+                    )
+                ],
+            )
+        )
 
     # EKF odom
     actions.append(
@@ -179,7 +200,7 @@ def generate_context(context, *args, **kwargs):
         actions.append(
             Node(
                 package='slam_toolbox',
-                executable='async_slam_toolbox_node',
+                executable='sync_slam_toolbox_node',
                 namespace=join(namespace),
                 name='slam_toolbox',
                 output='screen',

@@ -25,7 +25,7 @@
     debug_logging: false
     throttle_scans: 1
     transform_publish_period: 0.02 #if 0 never publishes odometry
-    map_update_interval: 0.1 #just view only
+    map_update_interval: 5.0 #just view only
     resolution: 0.05
     min_laser_range: 0.0 #for rastering images
     max_laser_range: 15.0 #for rastering images
@@ -36,10 +36,10 @@
     # General Parameters
     use_scan_matching: true
     use_scan_barycenter: true
-    minimum_travel_distance: 0.1
+    minimum_travel_distance: 0.5
     minimum_travel_heading: 0.01745
     minimum_time_interval: 0.2 # effect the respond karto process trade off cpu (low mean fast but cpu will use so much resource)
-    scan_buffer_size: 20
+    scan_buffer_size: 3
     scan_buffer_maximum_scan_distance: 10.0
     link_match_minimum_response_fine: 0.1  
     link_scan_maximum_distance: 1.5
