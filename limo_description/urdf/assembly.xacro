@@ -87,7 +87,7 @@
         frame_link="${namespace}/lidar_link"
         parent_link="${namespace}/base_link"
         xyz="0.1016 0 0.066"
-        rpy="0 0 0"/>
+        rpy="0 0 ${-8*M_PI/180}"/>
 
     <xacro:dabai
         object_name="dabai"
