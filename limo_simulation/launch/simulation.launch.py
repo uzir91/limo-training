@@ -327,9 +327,10 @@ def generate_context(context, *args, **kwargs):
     #         package='nav2_lifecycle_manager',
     #         plugin='nav2_lifecycle_manager::LifecycleManager',
     #         namespace=join(namespace),
-    #         name='hardware_lifecycle_manager_component',
+    #         name='lifecycle_manager_component_hardware',
     #         parameters=[
     #             {
+    #                 'use_sim_time': True,
     #                 'autostart': True,
     #                 'node_names': [
     #                 ],

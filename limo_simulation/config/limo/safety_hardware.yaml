@@ -30,7 +30,7 @@
     deviceTopic3: "camera/image"
     deviceType3: "sensor_msgs/msg/Image"
     deviceErrorTopic3: "image/error"
-    deviceTimeout3: 0.5
+    deviceTimeout3: -0.5
     deviceQosDepth3: 1
     deviceQosReliability3: "best_effort"
     deviceQosDurability3: "volatile"
@@ -38,7 +38,7 @@
     deviceTopic4: "camera/points"
     deviceType4: "sensor_msgs/msg/PointCloud2"
     deviceErrorTopic4: "points/error"
-    deviceTimeout4: 0.5
+    deviceTimeout4: -0.5
     deviceQosDepth4: 1
     deviceQosReliability4: "best_effort"
     deviceQosDurability4: "volatile"
