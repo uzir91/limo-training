@@ -308,6 +308,10 @@ def generate_context(context, *args, **kwargs):
     )
     lifecycles_navigation.append('bt_navigator');
 
+    static_map_topic = 'map' if bool(mapping) else 'contour_map'
+    speed_map_filename = replace_extension(map_filename, 'speed2.yaml')
+    planner_plugin = f'["speed"]' if not mapping and Path(speed_map_filename).exists() else "[]"
+    contour_map_filename = replace_extension(map_filename, 'yaml')
     actions.append(
         Node(
             package='nav2_planner',
@@ -324,6 +328,8 @@ def generate_context(context, *args, **kwargs):
                             'global_costmap.global_costmap.ros__parameters.use_sim_time': f"{simulation}",
                             'global_costmap.global_costmap.ros__parameters.global_frame': 'map',
                             'global_costmap.global_costmap.ros__parameters.robot_base_frame': join(namespace, 'base_footprint'),
+                            'global_costmap.global_costmap.ros__parameters.obstacle_layer.scan.topic': join('/', namespace, 'scan/data'),
+                            'global_costmap.global_costmap.ros__parameters.static_layer.map_topic': join('/', namespace, static_map_topic),
                         },
                         convert_types=True,
                     ),
@@ -332,14 +338,11 @@ def generate_context(context, *args, **kwargs):
                 {'use_sim_time': simulation},
             ],
             remappings=[
-                ('scan', join('/', namespace, 'scan/data')),
-                ('map', join('/', namespace, 'map')),
             ],
         ),
     )
     lifecycles_navigation.append('planner_server');
 
-    speed_map_filename = replace_extension(map_filename, '.speed.yaml')
     actions.append(
         Node(
             package='nav2_controller',
@@ -356,6 +359,11 @@ def generate_context(context, *args, **kwargs):
                             'local_costmap.local_costmap.ros__parameters.use_sim_time': f"{simulation}",
                             'local_costmap.local_costmap.ros__parameters.global_frame': join(namespace, 'odom'),
                             'local_costmap.local_costmap.ros__parameters.robot_base_frame': join(namespace, 'base_footprint'),
+                            'local_costmap.local_costmap.ros__parameters.planner_plugins': planner_plugin,
+                            'local_costmap.local_costmap.ros__parameters.voxel_layer.scan.topic': join('/', namespace, 'scan/data'),
+                            'local_costmap.local_costmap.ros__parameters.static_layer.map_topic': join('/', namespace, static_map_topic),
+                            'local_costmap.local_costmap.ros__parameters.speed_filter.filter_info_topic': join('/', namespace, 'speed_costmap_filter_info'),
+                            'local_costmap.local_costmap.ros__parameters.speed_filter.speed_limit_topic': join('/', namespace, 'speed_limit'),
                             'local_costmap.local_costmap.ros__parameters.speed_filter.enabled': str(Path(speed_map_filename).exists() and bool(speed_map_filename)).lower(),
                         },
                         convert_types=True,
@@ -365,10 +373,6 @@ def generate_context(context, *args, **kwargs):
                 {'use_sim_time': simulation},
             ],
             remappings=[
-                ('scan', join('/', namespace, 'scan/data')),
-                ('map', join('/', namespace, 'map')),
-                (join('/', namespace, 'local_costmap/speed_costmap_filter_info'), join('/', namespace, 'speed_costmap_filter_info')),
-                (join('/', namespace, 'local_costmap/speed_limit'), join('/', namespace, 'speed_limit')),
                 ('cmd_vel', 'nav/cmd_vel'),
                 ('odom', 'odom_ekf/filtered'),
             ],
@@ -376,58 +380,86 @@ def generate_context(context, *args, **kwargs):
     )
     lifecycles_navigation.append('controller_server');
 
-    if Path(speed_map_filename).exists() and bool(speed_map_filename):
-        actions.append(
-            Node(
-                package='nav2_map_server',
-                executable='costmap_filter_info_server',
-                namespace=join(namespace),
-                name='speed_costmap_filter_info_server',
-                parameters=[
-                    ParameterFile(
-                        RewrittenYaml(
-                            source_file=controller_server_path,
-                            root_key=join(namespace),
-                            param_rewrites={
-                            },
-                            convert_types=True,
+    if not mapping:
+        if Path(speed_map_filename).exists() and bool(speed_map_filename):
+            actions.append(
+                Node(
+                    package='nav2_map_server',
+                    executable='costmap_filter_info_server',
+                    namespace=join(namespace),
+                    name='speed_costmap_filter_info_server',
+                    parameters=[
+                        ParameterFile(
+                            RewrittenYaml(
+                                source_file=controller_server_path,
+                                root_key=join(namespace),
+                                param_rewrites={
+                                },
+                                convert_types=True,
+                            ),
+                            allow_substs=True,
                         ),
-                        allow_substs=True,
-                    ),
-                    {'use_sim_time': simulation},
-                    {'mask_topic': join('/', namespace, 'speed_filter_mask')},
-                ],
-                remappings=[
-                ],
-            ),
-        )
-        lifecycles_navigation.append('speed_costmap_filter_info_server');
+                        {'use_sim_time': simulation},
+                        {'mask_topic': join('/', namespace, 'speed_filter_mask')},
+                    ],
+                    remappings=[
+                    ],
+                ),
+            )
+            lifecycles_navigation.append('speed_costmap_filter_info_server');
 
-        actions.append(
-            Node(
-                package='nav2_map_server',
-                executable='map_server',
-                namespace=join(namespace),
-                name='speed_filter_mask_server',
-                parameters=[
-                    ParameterFile(
-                        RewrittenYaml(
-                            source_file=controller_server_path,
-                            root_key=join(namespace),
-                            param_rewrites={
-                            },
-                            convert_types=True,
+            actions.append(
+                Node(
+                    package='nav2_map_server',
+                    executable='map_server',
+                    namespace=join(namespace),
+                    name='speed_filter_mask_server',
+                    parameters=[
+                        ParameterFile(
+                            RewrittenYaml(
+                                source_file=controller_server_path,
+                                root_key=join(namespace),
+                                param_rewrites={
+                                },
+                                convert_types=True,
+                            ),
+                            allow_substs=True,
                         ),
-                        allow_substs=True,
-                    ),
-                    {'use_sim_time': simulation},
-                    {'yaml_filename': replace_extension(map_filename, 'speed.yaml')},
-                ],
-                remappings=[
-                ],
-            ),
-        )
-        lifecycles_navigation.append('speed_filter_mask_server');
+                        {'use_sim_time': simulation},
+                        {'yaml_filename': speed_map_filename},
+                    ],
+                    remappings=[
+                    ],
+                ),
+            )
+            lifecycles_navigation.append('speed_filter_mask_server');
+
+        if Path(contour_map_filename).exists() and bool(contour_map_filename):
+            actions.append(
+                Node(
+                    package='nav2_map_server',
+                    executable='map_server',
+                    namespace=join(namespace),
+                    name='contour_map_server',
+                    parameters=[
+                        ParameterFile(
+                            RewrittenYaml(
+                                source_file=controller_server_path,
+                                root_key=join(namespace),
+                                param_rewrites={
+                                },
+                                convert_types=True,
+                            ),
+                            allow_substs=True,
+                        ),
+                        {'use_sim_time': simulation},
+                        {'yaml_filename': contour_map_filename},
+                    ],
+                    remappings=[
+                    ],
+                ),
+            )
+            lifecycles_navigation.append('contour_map_server');
 
     actions.append(
         Node(
