@@ -1,0 +1,11 @@
+/**:
+  ros__parameters:
+    use_sim_time: False
+    imu_threshold: 0.01
+    imu_timeout: 1.0
+    odom_threshold: 0.001
+    odom_timeout: 1.0
+    timeout_check_rate: 50.0
+
+    # true requires valid odometry before stationary correction is applied.
+    require_odom_for_stationary: true

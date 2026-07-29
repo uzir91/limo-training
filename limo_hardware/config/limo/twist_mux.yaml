@@ -1,0 +1,67 @@
+# Locks to stop the twist inputs.
+# For each lock:
+# - topic   : input topic that provides the lock; it must be of type std_msgs::Bool?!!!
+# - timeout : == 0.0 -> not used
+#              > 0.0 -> the lock is supposed to published at a certain frequency in order
+#                       to detect that the publisher is alive; the timeout in seconds allows
+#                       to detect that, and if the publisher dies we will enable the lock
+# - priority: priority in the range [0, 255], so all the topics with priority lower than it
+#             will be stopped/disabled
+# Same priority as joystick control, so it'll not block it.
+
+# Input topics handled/muxed.
+# For each topic:
+# - name    : name identifier to select the topic (*sub-namespace, see below)
+# - topic   : input topic of geometry_msgs::Twist type
+# - timeout : timeout in seconds to start discarding old messages, and use 0.0 speed instead
+# - priority: priority in the range [0, 255]; the higher the more priority over other topics
+
+/**:
+  ros__parameters:
+    use_sim_time: False
+    locks:
+      emergency_stop:
+        topic   : e_stop/error
+        timeout : 0.0
+        priority: 255
+      imu_stop:
+        topic   : imu/error
+        timeout : 0.0
+        priority: 255
+      odom_stop:
+        topic   : odom/error
+        timeout : 0.0
+        priority: 255
+      scan_stop:
+        topic   : scan/error
+        timeout : 0.0
+        priority: 255
+      image_stop:
+        topic   : image/error
+        timeout : 0.0
+        priority: 255
+      points_stop:
+        topic   : points/error
+        timeout : 0.0
+        priority: 255
+    topics:
+      navigation:
+        topic   : nav/cmd_vel
+        timeout : 0.5
+        priority: 10
+      joystick:
+        topic   : joy/cmd_vel
+        timeout : 0.5
+        priority: 100
+      keyboard:
+        topic   : key/cmd_vel
+        timeout : 0.5
+        priority: 90
+      rqt:
+        topic   : rqt/cmd_vel
+        timeout : 0.5
+        priority: 100
+      external:
+        topic   : ext/cmd_vel
+        timeout : 0.5
+        priority: 110

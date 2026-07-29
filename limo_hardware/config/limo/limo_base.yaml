@@ -1,0 +1,10 @@
+/**:
+  ros__parameters:
+    use_sim_time: False
+    port_name: ttyTHS1
+    odom_frame: odom
+    base_frame: base_footprint
+    imu_frame: imu_link
+    pub_odom_tf: False
+    odom_topic_name: odom
+    use_mcnamu: False
