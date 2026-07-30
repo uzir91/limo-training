@@ -1,0 +1,10 @@
+/**:
+  ros__parameters:
+    use_sim_time: True
+    robot_base_frame: base_footprint
+    smoother_plugins: ["simple_smoother"]
+    simple_smoother:
+      plugin: "nav2_smoother::SimpleSmoother"
+      tolerance: 1.0e-10
+      max_its: 1000
+      do_refinement: True

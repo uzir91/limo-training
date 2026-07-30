@@ -301,9 +301,9 @@ local_costmap:
       use_sim_time: true
       update_frequency: 5.0
       publish_frequency: 2.0
-      global_frame: odom
+      global_frame: map #odom
       robot_base_frame: base_footprint
-      rolling_window: true
+      rolling_window: false #true
       width: 3
       height: 3
       resolution: 0.05
@@ -314,7 +314,7 @@ local_costmap:
       static_layer:
         plugin: "nav2_costmap_2d::StaticLayer"
         map_topic: map
-        # map_subscribe_transient_local: True
+        map_subscribe_transient_local: True
       voxel_layer:
         plugin: "nav2_costmap_2d::VoxelLayer"
         enabled: True
@@ -326,7 +326,7 @@ local_costmap:
         mark_threshold: 0
         observation_sources: scan
         scan:
-          topic: scan/data
+          topic: scan
           max_obstacle_height: 2.0
           clearing: True
           marking: True
@@ -345,4 +345,3 @@ local_costmap:
         enabled: True
         filter_info_topic: speed_costmap_filter_info
         speed_limit_topic: speed_limit
-        transform_tolerance: 0.2

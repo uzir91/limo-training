@@ -11,6 +11,7 @@
 
   <depend>limo_simulation</depend>
   <depend>limo_hardware</depend>
+  <depend>diagnostic_updater</depend>
   <depend>robot_localization</depend>
   <depend>nav2_bringup</depend>
 
