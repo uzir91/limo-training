@@ -6,7 +6,7 @@
 
     deviceTopic0: "imu/data"
     deviceType0: "sensor_msgs/msg/Imu"
-    deviceTimeout0: 0.5
+    deviceTimeout0: 0.1
     deviceErrorTopic0: "imu/error"
     deviceQosDepth0: 1
     deviceQosReliability0: "best_effort"
@@ -31,7 +31,7 @@
     deviceTopic3: "camera/image"
     deviceType3: "sensor_msgs/msg/Image"
     deviceErrorTopic3: "image/error"
-    deviceTimeout3: 0.5
+    deviceTimeout3: 1.0
     deviceQosDepth3: 1
     deviceQosReliability3: "best_effort"
     deviceQosDurability3: "volatile"
