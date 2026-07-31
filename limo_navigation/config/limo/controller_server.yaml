@@ -299,6 +299,7 @@ local_costmap:
   local_costmap:
     ros__parameters:
       use_sim_time: true
+      transform_tolerance: 0.3
       update_frequency: 5.0
       publish_frequency: 2.0
       global_frame: map #odom
@@ -313,6 +314,7 @@ local_costmap:
       plugins: ["static_layer", "voxel_layer", "inflation_layer"]
       static_layer:
         plugin: "nav2_costmap_2d::StaticLayer"
+        transform_tolerance: 0.3
         map_topic: map
         map_subscribe_transient_local: True
       voxel_layer:
@@ -342,6 +344,7 @@ local_costmap:
       filters: ["speed_filter"]
       speed_filter:
         plugin: "nav2_costmap_2d::SpeedFilter"
+        transform_tolerance: 0.3
         enabled: True
         filter_info_topic: speed_costmap_filter_info
         speed_limit_topic: speed_limit
