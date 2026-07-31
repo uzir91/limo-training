@@ -116,7 +116,7 @@
                     <pose>0 0 0 0 0 0</pose>
 
                     <always_on>true</always_on>
-                    <update_rate>30</update_rate>
+                    <update_rate>5</update_rate>
                     <visualize>true</visualize>
 
                     <!--
