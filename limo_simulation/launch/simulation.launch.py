@@ -439,11 +439,11 @@ def generate_context(context, *args, **kwargs):
                 ('audio_info', 'capture/audio_info'),
                 ('audio', 'capture/audio'),
             ],
-            extra_arguments=[
-                {
-                    'use_intra_process_comms': True,
-                },
-            ],
+            # extra_arguments=[
+            #     {
+            #         'use_intra_process_comms': True,
+            #     },
+            # ],
         ),
     )
 
@@ -460,11 +460,11 @@ def generate_context(context, *args, **kwargs):
             ],
             remappings=[
             ],
-            extra_arguments=[
-                {
-                    'use_intra_process_comms': True,
-                },
-            ],
+            # extra_arguments=[
+            #     {
+            #         'use_intra_process_comms': True,
+            #     },
+            # ],
         ),
     )
 
@@ -481,11 +481,11 @@ def generate_context(context, *args, **kwargs):
             remappings=[
                 ('audio', 'speech/audio')
             ],
-            extra_arguments=[
-                {
-                    'use_intra_process_comms': True,
-                },
-            ],
+            # extra_arguments=[
+            #     {
+            #         'use_intra_process_comms': True,
+            #     },
+            # ],
         )
     )
 
@@ -502,11 +502,11 @@ def generate_context(context, *args, **kwargs):
             remappings=[
                 ('audio', 'speech/audio'),
             ],
-            extra_arguments=[
-                {
-                    'use_intra_process_comms': True,
-                },
-            ],
+            # extra_arguments=[
+            #     {
+            #         'use_intra_process_comms': True,
+            #     },
+            # ],
         )
     )
 
