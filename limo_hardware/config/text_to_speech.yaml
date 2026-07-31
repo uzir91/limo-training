@@ -5,7 +5,12 @@
     stop_service_name: "speech/stop"
     speak_action_name: "generate_speech"
 
-    piper_executable: "/opt/tts_piper/bin/piper"
+    # Piper is loaded once by a persistent Python worker at node startup.
+    python_executable: "/opt/tts_piper/venv/bin/python3"
+
+    # Empty uses the installed package script automatically.
+    worker_script_path: ""
+
     model_path: "/opt/tts_piper/voices/en_US-lessac-medium.onnx"
 
     # Must match the selected Piper model and audio_play.yaml.
@@ -14,9 +19,16 @@
     # -1 uses the model default speaker.
     speaker_id: -1
 
+    # 200 ms avoids audio_play underruns while keeping low playback delay.
     chunk_duration_ms: 200
     max_text_length: 1000
     max_queue_size: 10
 
+    # Maximum time allowed for the model to become ready at startup/restart.
+    worker_start_timeout_ms: 30000
+
     sentence_silence: 0.0
     volume: 1.0
+
+    # Keep false with the current CPU ONNX Runtime installation.
+    use_cuda: false
