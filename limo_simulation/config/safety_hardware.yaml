@@ -8,7 +8,7 @@
     deviceTimeout0: 0.5
     deviceErrorTopic0: "imu/error"
     deviceQosDepth0: 1
-    deviceQosReliability0: "best_effort"
+    deviceQosReliability0: "reliable"
     deviceQosDurability0: "volatile"
     
     deviceTopic1: "diff_drive_controller/odom"
@@ -16,7 +16,7 @@
     deviceErrorTopic1: "odom/error"
     deviceTimeout1: 0.3
     deviceQosDepth1: 1
-    deviceQosReliability1: "best_effort"
+    deviceQosReliability1: "reliable"
     deviceQosDurability1: "volatile"
     
     deviceTopic2: "scan/data"
@@ -30,17 +30,17 @@
     deviceTopic3: "camera/color/image_raw"
     deviceType3: "sensor_msgs/msg/Image"
     deviceErrorTopic3: "image/error"
-    deviceTimeout3: 2.0
+    deviceTimeout3: 0.5
     deviceQosDepth3: 1
-    deviceQosReliability3: "best_effort"
+    deviceQosReliability3: "reliable"
     deviceQosDurability3: "volatile"
     
     deviceTopic4: "camera/depth_registered/points"
     deviceType4: "sensor_msgs/msg/PointCloud2"
     deviceErrorTopic4: "points/error"
-    deviceTimeout4: 2.0
+    deviceTimeout4: 0.5
     deviceQosDepth4: 1
-    deviceQosReliability4: "best_effort"
+    deviceQosReliability4: "reliable"
     deviceQosDurability4: "volatile"
 
     # Example for three devices:
