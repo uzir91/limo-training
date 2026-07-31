@@ -241,7 +241,7 @@ Visualization Manager:
         Filter size: 10
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /limo/camera/points
+        Value: /limo/camera/depth_registered/points
       Use Fixed Frame: true
       Use rainbow: true
       Value: true
@@ -257,7 +257,7 @@ Visualization Manager:
         Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /limo/camera/image
+        Value: /limo/camera/color/image_raw
       Value: true
   Enabled: true
   Global Options:

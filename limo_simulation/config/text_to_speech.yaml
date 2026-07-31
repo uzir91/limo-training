@@ -1,0 +1,22 @@
+/**:
+  ros__parameters:
+    text_topic: "speech/text"
+    audio_topic: "speech/audio"
+    stop_service_name: "speech/stop"
+    speak_action_name: "generate_speech"
+
+    piper_executable: "/opt/tts_piper/bin/piper"
+    model_path: "/opt/tts_piper/voices/en_US-lessac-medium.onnx"
+
+    # Must match the selected Piper model and audio_play.yaml.
+    sample_rate: 22050
+
+    # -1 uses the model default speaker.
+    speaker_id: -1
+
+    chunk_duration_ms: 200
+    max_text_length: 1000
+    max_queue_size: 10
+
+    sentence_silence: 0.0
+    volume: 1.0

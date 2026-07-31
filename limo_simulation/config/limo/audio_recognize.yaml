@@ -1,0 +1,37 @@
+/**:
+  ros__parameters:
+    # Extract an official Vosk model and set its directory here.
+    model_path: "/opt/vosk-model"
+    sample_rate: 16000
+    vosk_log_level: -1
+
+    # Vosk JSON formatting controls. ROS output remains a best-result string.
+    words: false
+    partial_words: false
+    max_alternatives: 0
+
+    publish_partial: true
+    publish_empty_final: false
+
+    # Refuse audio until audio_common_msgs/AudioInfo confirms compatible PCM.
+    require_audio_info: true
+
+    audio:
+      topic_name: "capture/audio_stamped"
+      info_topic_name: "capture/audio_info"
+      qos:
+        depth: 10
+        reliability: "reliable"
+        durability: "volatile"
+
+    output:
+      partial_topic_name: "speech/partial"
+      final_topic_name: "speech/final"
+      qos:
+        depth: 10
+        reliability: "reliable"
+        durability: "volatile"
+
+    action:
+      name: "recognize_speech"
+      timeout_check_period_ms: 20

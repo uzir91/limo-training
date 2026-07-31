@@ -1,0 +1,21 @@
+/**:
+  ros__parameters:
+    # 100 ms = maximum output rate of approximately 10 Hz.
+    publish_period_ms: 200
+
+    # Publish the first eligible frame immediately. Frames received while
+    # blocked replace the previous pending frame.
+    publish_immediately: true
+
+    input:
+      # Base image topic. The sibling camera_info topic is subscribed
+      # automatically. For compressed input, keep the base name here and set
+      # transport to "compressed"; do not append /compressed.
+      topic_name: "camera/color/image_raw"
+      transport: "raw"
+
+    output:
+      # Base image topic. The sibling camera_info topic is published
+      # automatically. Subscribers select raw/compressed transport.
+      topic_name: "camera/color_throttle/image_raw"
+

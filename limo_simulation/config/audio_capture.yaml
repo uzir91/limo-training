@@ -1,0 +1,11 @@
+/**:
+  ros__parameters:
+    src: alsasrc
+    dst: appsink
+    device: ""
+    format: wave
+    bitrate: 128
+    channels: 1
+    depth: 16
+    sample_rate: 16000
+    sample_format: S16LE

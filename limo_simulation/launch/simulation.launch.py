@@ -43,6 +43,14 @@ def generate_context(context, *args, **kwargs):
     safety_imu_filename = GetArgument('safety_imu_filename', 'safety_imu.yaml')
     safety_hardware_filename = GetArgument('safety_hardware_filename', 'safety_hardware.yaml')
     twist_mux_filename = GetArgument('twist_mux_filename', 'twist_mux.yaml')
+    camera_throttle_filename = GetArgument('camera_throttle_filename', 'camera_throttle.yaml')
+    camera_info_throttle_filename = GetArgument('camera_info_throttle_filename', 'camera_info_throttle.yaml')
+    apriltag_filename = GetArgument('apriltag_filename', 'apriltag.yaml')
+    apriltag_pose_filename = GetArgument('apriltag_pose_filename', 'apriltag_pose.yaml')
+    audio_capture_filename = GetArgument('audio_capture_filename', 'audio_capture.yaml')
+    audio_recognize_filename = GetArgument('audio_recognize_filename', 'audio_recognize.yaml')
+    text_to_speech_filename = GetArgument('text_to_speech_filename', 'text_to_speech.yaml')
+    audio_play_filename = GetArgument('audio_play_filename', 'audio_play.yaml')
     rviz_filename = GetArgument('rviz_filename', 'simulation.rviz')
 
     world_path = GetArgument('world_path', join(limo_simulation_pkg, 'worlds', world_filename))
@@ -54,6 +62,14 @@ def generate_context(context, *args, **kwargs):
     safety_imu_path = GetArgument('safety_imu_path', join(limo_simulation_pkg, 'config', namespace, safety_imu_filename))
     safety_hardware_path = GetArgument('safety_hardware_path', join(limo_simulation_pkg, 'config', namespace, safety_hardware_filename))
     twist_mux_path = GetArgument('twist_mux_path', join(limo_simulation_pkg, 'config', namespace, twist_mux_filename))
+    camera_throttle_path = GetArgument('camera_throttle_path', join(limo_simulation_pkg, 'config', namespace, camera_throttle_filename))
+    camera_info_throttle_path = GetArgument('camera_info_throttle_path', join(limo_simulation_pkg, 'config', namespace, camera_info_throttle_filename))
+    apriltag_path = GetArgument('apriltag_path', join(limo_simulation_pkg, 'config', namespace, apriltag_filename))
+    apriltag_pose_path = GetArgument('apriltag_pose_path', join(limo_simulation_pkg, 'config', namespace, apriltag_pose_filename))
+    audio_capture_path = GetArgument('audio_capture_path', join(limo_simulation_pkg, 'config', namespace, audio_capture_filename))
+    audio_recognize_path = GetArgument('audio_recognize_path', join(limo_simulation_pkg, 'config', namespace, audio_recognize_filename))
+    text_to_speech_path = GetArgument('text_to_speech_path', join(limo_simulation_pkg, 'config', namespace, text_to_speech_filename))
+    audio_play_path = GetArgument('audio_play_path', join(limo_simulation_pkg, 'config', namespace, audio_play_filename))
     rviz_path = GetArgument('rviz_path', join(limo_simulation_pkg, 'rviz', rviz_filename))
 
     if not exists(world_path):
@@ -74,6 +90,22 @@ def generate_context(context, *args, **kwargs):
         safety_hardware_path = join(limo_simulation_pkg, 'config', 'safety_hardware.yaml')
     if not exists(twist_mux_path):
         twist_mux_path = join(limo_simulation_pkg, 'config', 'twist_mux.yaml')
+    if not exists(camera_throttle_path):
+        camera_throttle_path = join(limo_simulation_pkg, 'config', 'camera_throttle.yaml')
+    if not exists(camera_info_throttle_path):
+        camera_info_throttle_path = join(limo_simulation_pkg, 'config', 'camera_info_throttle.yaml')
+    if not exists(apriltag_path):
+        apriltag_path = join(limo_simulation_pkg, 'config', 'apriltag.yaml')
+    if not exists(apriltag_pose_path):
+        apriltag_pose_path = join(limo_simulation_pkg, 'config', 'apriltag_pose.yaml')
+    if not exists(audio_capture_path):
+        audio_capture_path = join(limo_simulation_pkg, 'config', 'audio_capture.yaml')
+    if not exists(audio_recognize_path):
+        audio_recognize_path = join(limo_simulation_pkg, 'config', 'audio_recognize.yaml')
+    if not exists(text_to_speech_path):
+        text_to_speech_path = join(limo_simulation_pkg, 'config', 'text_to_speech.yaml')
+    if not exists(audio_play_path):
+        audio_play_path = join(limo_simulation_pkg, 'config', 'audio_play.yaml')
     if not exists(rviz_path):
         rviz_path = join(limo_simulation_pkg, 'rviz', 'simulation.rviz')
 
@@ -184,6 +216,12 @@ def generate_context(context, *args, **kwargs):
                 f"/{join(namespace, 'camera/depth_image')}@sensor_msgs/msg/Image[ignition.msgs.Image",
                 f"/{join(namespace, 'camera/points')}@sensor_msgs/msg/PointCloud2[ignition.msgs.PointCloudPacked",
             ],
+            remappings=[
+                ('camera/image', 'camera/color/image_raw'),
+                ('camera/camera_info', 'camera/color/camera_info'),
+                ('camera/depth_image', 'camera/depth/image_raw'),
+                ('camera/points', 'camera/depth_registered/points'),
+            ]
         )
     )
 
@@ -319,6 +357,157 @@ def generate_context(context, *args, **kwargs):
                 ('cmd_vel_out', 'diff_drive_controller/cmd_vel_unstamped'),
             ]
         ),
+    )
+
+    # # Camera throttle
+    # components.append(
+    #     ComposableNode(
+    #         package='image_throttle',
+    #         plugin='image_throttle::ImageThrottleComponent',
+    #         namespace=join(namespace),
+    #         name='camera_throttle_node',
+    #         parameters=[
+    #             camera_throttle_path,
+    #             {'use_sim_time': False},
+    #         ],
+    #         remappings=[
+    #         ],
+    #         # extra_arguments=[
+    #         #     {
+    #         #         'use_intra_process_comms': False,
+    #         #     },
+    #         # ],
+    #     ),
+    # )
+
+    # Apriltag detection
+    components.append(
+        ComposableNode(
+            package='apriltag_ros',
+            plugin='AprilTagNode',
+            namespace=join(namespace),
+            name='apriltag_node',
+            parameters=[
+                apriltag_path,
+                {'use_sim_time': False},
+            ],
+            remappings=[
+                ('image_rect', 'camera/color/image_raw'),
+            ],
+            extra_arguments=[
+                {
+                    'use_intra_process_comms': True,
+                },
+            ],
+        ),
+    )
+
+    # Apriltag pose
+    components.append(
+        ComposableNode(
+            package='apriltag_pose',
+            plugin='apriltag_pose::AprilTagPoseComponent',
+            namespace=join(namespace),
+            name='apriltag_pose_node',
+            parameters=[
+                apriltag_pose_path,
+                {'use_sim_time': False},
+            ],
+            remappings=[
+            ],
+            extra_arguments=[
+                {
+                    'use_intra_process_comms': True,
+                },
+            ],
+        ),
+    )
+
+    # Audio capture
+    components.append(
+        ComposableNode(
+            package='audio_capture',
+            plugin='audio_capture::AudioCaptureNode',
+            namespace=join(namespace),
+            name='audio_capture_node',
+            parameters=[
+                audio_capture_path,
+                {'use_sim_time': False},
+            ],
+            remappings=[
+                ('audio_stamped', 'capture/audio_stamped'),
+                ('audio_info', 'capture/audio_info'),
+                ('audio', 'capture/audio'),
+            ],
+            extra_arguments=[
+                {
+                    'use_intra_process_comms': True,
+                },
+            ],
+        ),
+    )
+
+    # Audio recognize
+    components.append(
+        ComposableNode(
+            package='sr_vosk',
+            plugin='sr_vosk::SrVoskComponent',
+            namespace=join(namespace),
+            name='audio_recognize_node',
+            parameters=[
+                audio_recognize_path,
+                {'use_sim_time': False},
+            ],
+            remappings=[
+            ],
+            extra_arguments=[
+                {
+                    'use_intra_process_comms': True,
+                },
+            ],
+        ),
+    )
+
+    components.append(
+        ComposableNode(
+            package='tts_piper',
+            plugin='tts_piper::TtsPiperComponent',
+            namespace=join(namespace),
+            name='text_to_speech',
+            parameters=[
+                text_to_speech_path,
+                {'use_sim_time': False},
+            ],
+            remappings=[
+                ('audio', 'speech/audio')
+            ],
+            extra_arguments=[
+                {
+                    'use_intra_process_comms': True,
+                },
+            ],
+        )
+    )
+
+    components.append(
+        ComposableNode(
+            package='audio_play',
+            plugin='audio_play::AudioPlayNode',
+            namespace=join(namespace),
+            name='audio_play',
+            parameters=[
+                audio_play_path,
+                {'use_sim_time': False},
+            ],
+            remappings=[
+                ('audio', 'speech/audio'),
+            ],
+            extra_arguments=[
+                {
+                    'use_intra_process_comms': True,
+                },
+            ],
+        )
     )
 
     # # Lifecycle Manager
