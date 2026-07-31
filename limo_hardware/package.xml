@@ -9,9 +9,22 @@
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
-  <depend>rviz2</depend>
+  <depend>robot_state_publisher</depend>
   <depend>ros2_controllers</depend>
   <depend>controller_manager</depend>
+  <depend>joy</depend>
+  <depend>teleop_twist_joy</depend>
+  <depend>imu_complementary_filter</depend>
+  <depend>safety_imu</depend>
+  <depend>safety_hardware</depend>
+  <depend>twist_mux</depend>
+  <depend>image_throttle</depend>
+  <depend>apriltag_ros</depend>
+  <depend>apriltag_pose</depend>
+  <depend>audio_common</depend>
+  <depend>sr_vosk</depend>
+  <depend>tts_piper</depend>
+  <depend>rviz2</depend>
   <depend>limo_description</depend>
 
   <exec_depend>launch</exec_depend>

@@ -1,0 +1,68 @@
+/**:
+  ros__parameters:
+    input:
+      detection_topic: "detections"
+      camera_info_topic: "camera/color/camera_info"
+
+      detection_qos:
+        depth: 1
+        reliability: "reliable"
+        durability: "volatile"
+
+      camera_info_qos:
+        depth: 10
+        reliability: "best_effort"
+        durability: "volatile"
+
+    output:
+      pose_topic: "apriltag_poses"
+
+      qos:
+        depth: 10
+        reliability: "reliable"
+        durability: "volatile"
+
+    action:
+      raw_name: "lookup_apriltag"
+      pose_name: "lookup_apriltag_pose"
+      check_period_ms: 20
+      feedback_period_ms: 200
+      max_cache_duration_sec: 10.0
+
+    service:
+      set_config_name: "set_apriltag_config"
+
+    # Reject pose calculation when detection and CameraInfo frame IDs differ.
+    require_camera_frame_match: true
+
+    # Pose solutions above this RMS pixel reprojection error are discarded.
+    # The stream skips them; the pose action keeps searching until timeout.
+    pose_quality:
+      max_reprojection_error_rms: 3.0
+
+      # Non-zero heuristic covariance. Variance grows with RMS and distance.
+      base_position_variance: 0.0004
+      base_rotation_variance: 0.0025
+      depth_variance_multiplier: 4.0
+      tilt_variance_multiplier: 2.0
+      reprojection_variance_scale: 0.25
+      distance_variance_scale: 0.10
+
+    # Serialized YAML. This is the only parameter that supports runtime updates.
+    # All standalone-tag and bundle names must be globally unique.
+    # Tag size is the detected black/white border edge length in metres.
+    # Bundle layout transforms mean bundle_frame -> tag_frame.
+    tag_config_yaml: |
+      standalone_tags:
+        # - {id: 0, size: 0.07, name: "dock_top"}
+        - {id: 1, size: 0.07, name: "dock_left"}
+        - {id: 2, size: 0.07, name: "dock_right"}
+
+      tag_bundles:
+        - name: "dock_bundle"
+          layout:
+            - {id: 1, size: 0.07, x: -0.05, y: 0.0, z: 0.0, qw: 1.0, qx: 0.0, qy: 0.0, qz: 0.0}
+            - {id: 2, size: 0.07, x:  0.05, y: 0.0, z: 0.0, qw: 1.0, qx: 0.0, qy: 0.0, qz: 0.0}
+        - name: "dock_bottom"
+          layout:
+            - {id: 0, size: 0.07}

@@ -1,0 +1,12 @@
+/**:
+  ros__parameters:
+    dst: "alsasink"
+    device: ""
+    do_timestamp: true
+
+    # audio_play calls raw PCM mode "wave".
+    format: "wave"
+    channels: 1
+    depth: 16
+    sample_rate: 22050
+    sample_format: "S16LE"

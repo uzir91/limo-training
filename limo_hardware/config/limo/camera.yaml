@@ -14,7 +14,7 @@
     connection_delay: 100
     color_width: 640
     color_height: 480
-    color_fps: 30
+    color_fps: 5
     color_format: MJPG
     enable_color: true
     flip_color: false
@@ -23,7 +23,7 @@
     enable_color_auto_exposure: true
     depth_width: 640
     depth_height: 400
-    depth_fps: 30
+    depth_fps: 5
     depth_format: Y11
     enable_depth: true
     flip_depth: false
@@ -31,7 +31,7 @@
     depth_camera_info_qos: default
     ir_width: 640
     ir_height: 400
-    ir_fps: 30
+    ir_fps: 5
     ir_format: Y10
     enable_ir: true
     flip_ir: false
