@@ -9,6 +9,9 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(limo_simulation REQUIRED)
 find_package(limo_hardware REQUIRED)
+find_package(diagnostic_updater REQUIRED)
+find_package(robot_localization REQUIRED)
+find_package(slam_toolbox REQUIRED)
 find_package(nav2_common REQUIRED)
 
 install(
