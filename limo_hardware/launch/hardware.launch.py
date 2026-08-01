@@ -55,9 +55,11 @@ def generate_context(context, *args, **kwargs):
     apriltag_filename = GetArgument('apriltag_filename', 'apriltag.yaml')
     apriltag_pose_filename = GetArgument('apriltag_pose_filename', 'apriltag_pose.yaml')
     audio_capture_filename = GetArgument('audio_capture_filename', 'audio_capture.yaml')
-    audio_recognize_filename = GetArgument('audio_recognize_filename', 'audio_recognize.yaml')
-    text_to_speech_filename = GetArgument('text_to_speech_filename', 'text_to_speech.yaml')
+    sr_vosk_filename = GetArgument('sr_vosk_filename', 'sr_vosk.yaml')
+    tts_piper_filename = GetArgument('tts_piper_filename', 'tts_piper.yaml')
     audio_play_filename = GetArgument('audio_play_filename', 'audio_play.yaml')
+    ocr_tesseract_filename = GetArgument('ocr_tesseract_filename', 'ocr_tesseract.yaml')
+    traffic_light_filename = GetArgument('traffic_light_filename', 'traffic_light.yaml')
     rviz_filename = GetArgument('rviz_filename', 'hardware.rviz')
 
     limo_base_path = GetArgument('limo_base_path', join(limo_hardware_pkg, 'config', namespace, limo_base_filename))
@@ -76,9 +78,11 @@ def generate_context(context, *args, **kwargs):
     apriltag_path = GetArgument('apriltag_path', join(limo_hardware_pkg, 'config', namespace, apriltag_filename))
     apriltag_pose_path = GetArgument('apriltag_pose_path', join(limo_hardware_pkg, 'config', namespace, apriltag_pose_filename))
     audio_capture_path = GetArgument('audio_capture_path', join(limo_hardware_pkg, 'config', namespace, audio_capture_filename))
-    audio_recognize_path = GetArgument('audio_recognize_path', join(limo_hardware_pkg, 'config', namespace, audio_recognize_filename))
-    text_to_speech_path = GetArgument('text_to_speech_path', join(limo_hardware_pkg, 'config', namespace, text_to_speech_filename))
+    sr_vosk_path = GetArgument('sr_vosk_path', join(limo_hardware_pkg, 'config', namespace, sr_vosk_filename))
+    tts_piper_path = GetArgument('tts_piper_path', join(limo_hardware_pkg, 'config', namespace, tts_piper_filename))
     audio_play_path = GetArgument('audio_play_path', join(limo_hardware_pkg, 'config', namespace, audio_play_filename))
+    ocr_tesseract_path = GetArgument('ocr_tesseract_path', join(limo_hardware_pkg, 'config', namespace, ocr_tesseract_filename))
+    traffic_light_path = GetArgument('traffic_light_path', join(limo_hardware_pkg, 'config', namespace, traffic_light_filename))
     rviz_path = GetArgument('rviz_path', join(limo_hardware_pkg, 'rviz', rviz_filename))
 
     if not exists(limo_base_path):
@@ -113,12 +117,16 @@ def generate_context(context, *args, **kwargs):
         apriltag_pose_path = join(limo_hardware_pkg, 'config', 'apriltag_pose.yaml')
     if not exists(audio_capture_path):
         audio_capture_path = join(limo_hardware_pkg, 'config', 'audio_capture.yaml')
-    if not exists(audio_recognize_path):
-        audio_recognize_path = join(limo_hardware_pkg, 'config', 'audio_recognize.yaml')
-    if not exists(text_to_speech_path):
-        text_to_speech_path = join(limo_hardware_pkg, 'config', 'text_to_speech.yaml')
+    if not exists(sr_vosk_path):
+        sr_vosk_path = join(limo_hardware_pkg, 'config', 'sr_vosk.yaml')
+    if not exists(tts_piper_path):
+        tts_piper_path = join(limo_hardware_pkg, 'config', 'tts_piper.yaml')
     if not exists(audio_play_path):
         audio_play_path = join(limo_hardware_pkg, 'config', 'audio_play.yaml')
+    if not exists(ocr_tesseract_path):
+        ocr_tesseract_path = join(limo_hardware_pkg, 'config', 'ocr_tesseract.yaml')
+    if not exists(traffic_light_path):
+        traffic_light_path = join(limo_hardware_pkg, 'config', 'traffic_light.yaml')
     if not exists(rviz_path):
         rviz_path = join(limo_hardware_pkg, 'rviz', 'simulation.rviz')
 
@@ -240,8 +248,8 @@ def generate_context(context, *args, **kwargs):
                 },
             ],
             remappings=[
-                # ('depth_registered/points', 'points'),
-                # ('color/image_raw', 'image'),
+                ('/camera/depth_to_ir', 'camera/depth_to_ir'),
+                ('/camera/depth_to_color', 'camera/depth_to_color'),
             ]
         )
     )
@@ -437,6 +445,7 @@ def generate_context(context, *args, **kwargs):
             ],
             remappings=[
                 ('image_rect', 'camera/color/image_raw'),
+                ('detections', 'apriltag/detections'),
             ],
             extra_arguments=[
                 {
@@ -497,9 +506,9 @@ def generate_context(context, *args, **kwargs):
             package='sr_vosk',
             plugin='sr_vosk::SrVoskComponent',
             namespace=join(namespace),
-            name='audio_recognize_node',
+            name='sr_vosk_node',
             parameters=[
-                audio_recognize_path,
+                sr_vosk_path,
                 {'use_sim_time': False},
             ],
             remappings=[
@@ -517,13 +526,12 @@ def generate_context(context, *args, **kwargs):
             package='tts_piper',
             plugin='tts_piper::TtsPiperComponent',
             namespace=join(namespace),
-            name='text_to_speech',
+            name='tts_piper',
             parameters=[
-                text_to_speech_path,
+                tts_piper_path,
                 {'use_sim_time': False},
             ],
             remappings=[
-                ('audio', 'speech/audio')
             ],
             # extra_arguments=[
             #     {
@@ -544,7 +552,47 @@ def generate_context(context, *args, **kwargs):
                 {'use_sim_time': False},
             ],
             remappings=[
-                ('audio', 'speech/audio'),
+                ('audio', 'tts/audio'),
+            ],
+            # extra_arguments=[
+            #     {
+            #         'use_intra_process_comms': True,
+            #     },
+            # ],
+        )
+    )
+
+    components.append(
+        ComposableNode(
+            package='ocr_tesseract',
+            plugin='ocr_tesseract::OcrTesseractComponent',
+            namespace=join(namespace),
+            name='ocr_tesseract',
+            parameters=[
+                ocr_tesseract_path,
+                {'use_sim_time': False},
+            ],
+            remappings=[
+            ],
+            # extra_arguments=[
+            #     {
+            #         'use_intra_process_comms': True,
+            #     },
+            # ],
+        )
+    )
+
+    components.append(
+        ComposableNode(
+            package='traffic_light',
+            plugin='traffic_light::TrafficLightComponent',
+            namespace=join(namespace),
+            name='traffic_light',
+            parameters=[
+                traffic_light_path,
+                {'use_sim_time': False},
+            ],
+            remappings=[
             ],
             # extra_arguments=[
             #     {

@@ -1,0 +1,34 @@
+/**:
+  ros__parameters:
+    language: "eng"
+    tessdata_path: ""
+
+    # Tesseract OEM: 0 legacy, 1 LSTM, 2 combined, 3 default.
+    engine_mode: 1
+
+    # Tesseract PSM: 3 is automatic page segmentation.
+    page_segmentation_mode: 3
+
+    preserve_interword_spaces: false
+    trim_text: true
+
+    stream:
+      enabled: true
+      input_topic: "camera/color/image_raw"
+      output_topic: "ocr/annotation"
+      include_words: true
+
+      input_qos:
+        depth: 1
+        reliability: "best_effort"
+        durability: "volatile"
+
+      output_qos:
+        depth: 10
+        reliability: "reliable"
+        durability: "volatile"
+
+    action:
+      enabled: true
+      name: "ocr"
+      maximum_queue_size: 8

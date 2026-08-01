@@ -1,9 +1,9 @@
 /**:
   ros__parameters:
-    text_topic: "speech/text"
-    audio_topic: "speech/audio"
-    stop_service_name: "speech/stop"
-    speak_action_name: "generate_speech"
+    text_topic: "tts/text"
+    audio_topic: "tts/audio"
+    stop_service_name: "tts/stop"
+    speak_action_name: "tts"
 
     # Piper is loaded once by a persistent Python worker at node startup.
     python_executable: "/opt/tts_piper/venv/bin/python3"

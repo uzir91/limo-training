@@ -25,13 +25,13 @@
         durability: "volatile"
 
     output:
-      partial_topic_name: "speech/partial"
-      final_topic_name: "speech/final"
+      partial_topic_name: "sr/partial"
+      final_topic_name: "sr/final"
       qos:
         depth: 10
         reliability: "reliable"
         durability: "volatile"
 
     action:
-      name: "recognize_speech"
+      name: "sr"
       timeout_check_period_ms: 20

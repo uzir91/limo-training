@@ -1,7 +1,7 @@
 /**:
   ros__parameters:
     input:
-      detection_topic: "detections"
+      detection_topic: "apriltag/detections"
       camera_info_topic: "camera/color/camera_info"
 
       detection_qos:
@@ -15,7 +15,7 @@
         durability: "volatile"
 
     output:
-      pose_topic: "apriltag_poses"
+      pose_topic: "apriltag/poses"
 
       qos:
         depth: 10
@@ -23,8 +23,8 @@
         durability: "volatile"
 
     action:
-      raw_name: "lookup_apriltag"
-      pose_name: "lookup_apriltag_pose"
+      raw_name: "apriltag_raw"
+      pose_name: "apriltag"
       check_period_ms: 20
       feedback_period_ms: 200
       max_cache_duration_sec: 10.0
