@@ -1,0 +1,45 @@
+/**:
+  ros__parameters:
+    # true: process every image and publish output_topic.
+    # false: process only while an action goal is waiting.
+    stream: true
+
+    input_topic: "camera/color/image_raw"
+    output_topic: "traffic_light/state"
+    action_name: "traffic_light"
+
+    # Input uses sensor-data QoS (best effort, volatile).
+    # Output uses reliable, volatile QoS.
+    input_qos_depth: 1
+    output_qos_depth: 10
+
+    # All zeros use the complete image. Otherwise set a fixed pixel ROI.
+    roi:
+      x: 0
+      y: 0
+      width: 0
+      height: 0
+
+    # Set either kernel to 1 to disable that operation.
+    blur_kernel_size: 5
+    morphology_kernel_size: 5
+
+    # Minimum largest connected mask area divided by ROI area.
+    minimum_area_ratio: 0.002
+
+    # OpenCV HSV ranges: H [0, 179], S/V [0, 255].
+    # Red needs two ranges because hue wraps around zero.
+    # Orange is intentionally classified as yellow, not red.
+    red:
+      lower_1: [0, 120, 70]
+      upper_1: [7, 255, 255]
+      lower_2: [173, 120, 70]
+      upper_2: [179, 255, 255]
+
+    yellow:
+      lower: [8, 120, 70]
+      upper: [35, 255, 255]
+
+    green:
+      lower: [40, 80, 70]
+      upper: [95, 255, 255]

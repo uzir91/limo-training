@@ -24,9 +24,13 @@
   <depend>image_throttle</depend>
   <depend>apriltag_ros</depend>
   <depend>apriltag_pose</depend>
-  <depend>audio_common</depend>
+  <depend>audio_capture</depend>
+  <depend>audio_play</depend>
+  <depend>sound_play</depend>
   <depend>sr_vosk</depend>
   <depend>tts_piper</depend>
+  <depend>ocr_tesseract</depend>
+  <depend>traffic_light</depend>
   <depend>rviz2</depend>
   <depend>limo_description</depend>
 
