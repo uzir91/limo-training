@@ -4,12 +4,12 @@ from ament_index_python.packages import get_package_share_directory
 
 from launch import LaunchDescription
 from launch.conditions import IfCondition , UnlessCondition
-from launch.actions import DeclareLaunchArgument, GroupAction, IncludeLaunchDescription, OpaqueFunction, TimerAction, SetEnvironmentVariable
+from launch.actions import DeclareLaunchArgument, GroupAction, IncludeLaunchDescription, OpaqueFunction, TimerAction, SetEnvironmentVariable, ExecuteProcess
 from launch.substitutions import Command, FindExecutable, PathJoinSubstitution, LaunchConfiguration
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.event_handlers import OnProcessExit
 from launch_ros.actions import LifecycleNode, Node, PushRosNamespace, ComposableNodeContainer, LoadComposableNodes
-from launch_ros.substitutions import FindPackageShare
+from launch_ros.substitutions import FindPackageShare, ExecutableInPackage
 from launch_ros.parameter_descriptions import ParameterValue
 from launch_ros.descriptions import ParameterFile, ComposableNode
 
@@ -627,17 +627,17 @@ def generate_context(context, *args, **kwargs):
             ),
         )
 
-    # if components:
-    #     actions.append(
-    #         ComposableNodeContainer(
-    #             package='rclcpp_components',
-    #             executable='component_container_mt',
-    #             namespace=join(namespace),
-    #             name='component_container_node',
-    #             composable_node_descriptions=components,
-    #             output='screen',
-    #             emulate_tty=True,
-    #         )
-    #     )
+    # start node-red
+    actions.append(
+        ExecuteProcess(
+            cmd=[
+                ExecutableInPackage(
+                    package='limo_simulation',
+                    executable='start_node_red.sh',
+                ),
+            ],
+            output='screen',
+        )
+    )
 
     return actions
