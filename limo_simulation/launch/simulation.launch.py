@@ -52,6 +52,7 @@ def generate_context(context, *args, **kwargs):
     tts_piper_filename = GetArgument('tts_piper_filename', 'tts_piper.yaml')
     audio_play_filename = GetArgument('audio_play_filename', 'audio_play.yaml')
     ocr_tesseract_filename = GetArgument('ocr_tesseract_filename', 'ocr_tesseract.yaml')
+    ocr_rapid_filename = GetArgument('ocr_rapid_filename', 'ocr_rapid.yaml')
     traffic_light_filename = GetArgument('traffic_light_filename', 'traffic_light.yaml')
     rviz_filename = GetArgument('rviz_filename', 'simulation.rviz')
 
@@ -73,6 +74,7 @@ def generate_context(context, *args, **kwargs):
     tts_piper_path = GetArgument('tts_piper_path', join(limo_simulation_pkg, 'config', namespace, tts_piper_filename))
     audio_play_path = GetArgument('audio_play_path', join(limo_simulation_pkg, 'config', namespace, audio_play_filename))
     ocr_tesseract_path = GetArgument('ocr_tesseract_path', join(limo_simulation_pkg, 'config', namespace, ocr_tesseract_filename))
+    ocr_rapid_path = GetArgument('ocr_rapid_path', join(limo_simulation_pkg, 'config', namespace, ocr_rapid_filename))
     traffic_light_path = GetArgument('traffic_light_path', join(limo_simulation_pkg, 'config', namespace, traffic_light_filename))
     rviz_path = GetArgument('rviz_path', join(limo_simulation_pkg, 'rviz', rviz_filename))
 
@@ -112,6 +114,8 @@ def generate_context(context, *args, **kwargs):
         audio_play_path = join(limo_simulation_pkg, 'config', 'audio_play.yaml')
     if not exists(ocr_tesseract_path):
         ocr_tesseract_path = join(limo_simulation_pkg, 'config', 'ocr_tesseract.yaml')
+    if not exists(ocr_rapid_path):
+        ocr_rapid_path = join(limo_simulation_pkg, 'config', 'ocr_rapid.yaml')
     if not exists(traffic_light_path):
         traffic_light_path = join(limo_simulation_pkg, 'config', 'traffic_light.yaml')
     if not exists(rviz_path):
@@ -518,14 +522,34 @@ def generate_context(context, *args, **kwargs):
         )
     )
 
+    # components.append(
+    #     ComposableNode(
+    #         package='ocr_tesseract',
+    #         plugin='ocr_tesseract::OcrTesseractComponent',
+    #         namespace=join(namespace),
+    #         name='ocr_tesseract',
+    #         parameters=[
+    #             ocr_tesseract_path,
+    #             {'use_sim_time': True},
+    #         ],
+    #         remappings=[
+    #         ],
+    #         # extra_arguments=[
+    #         #     {
+    #         #         'use_intra_process_comms': True,
+    #         #     },
+    #         # ],
+    #     )
+    # )
+
     components.append(
         ComposableNode(
-            package='ocr_tesseract',
-            plugin='ocr_tesseract::OcrTesseractComponent',
+            package='ocr_rapid',
+            plugin='ocr_rapid::OcrRapidComponent',
             namespace=join(namespace),
-            name='ocr_tesseract',
+            name='ocr_rapid',
             parameters=[
-                ocr_tesseract_path,
+                ocr_rapid_path,
                 {'use_sim_time': True},
             ],
             remappings=[
