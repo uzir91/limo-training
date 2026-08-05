@@ -1,0 +1,33 @@
+/**:
+  ros__parameters:
+    # These interface names require a restart after changing.
+    image_topic: "camera/color/image_raw"
+    result_topic: "ocr/annotation"
+    text_topic: "ocr/text"
+    action_name: "ocr"
+
+    # Installed by scripts/install_dependencies.sh.
+    # Model paths require a restart after changing.
+    model:
+      det_path: "/opt/rapidocr/models/ch_PP-OCRv3_det_infer.onnx"
+      cls_path: "/opt/rapidocr/models/ch_ppocr_mobile_v2.0_cls_infer.onnx"
+      rec_path: "/opt/rapidocr/models/ch_PP-OCRv3_rec_infer.onnx"
+      keys_path: "/opt/rapidocr/models/ppocr_keys_v1.txt"
+
+    inference:
+      # Requires a restart because the persistent engine is initialized once.
+      num_threads: 4
+
+      # The remaining inference parameters support runtime updates.
+      padding: 50
+      max_side_len: 1024
+      box_score_threshold: 0.5
+      box_threshold: 0.3
+      unclip_ratio: 1.6
+      do_angle: true
+      most_angle: true
+
+    output:
+      # Mean recognition confidence from 0.0 to 1.0.
+      # Applied to both stream and action results.
+      min_confidence: 0.5
