@@ -53,16 +53,16 @@
     # Tag size is the detected black/white border edge length in metres.
     # Bundle layout transforms mean bundle_frame -> tag_frame.
     tag_config_yaml: |
-      standalone_tags:
+      # standalone_tags:
         # - {id: 0, size: 0.07, name: "dock_top"}
-        - {id: 1, size: 0.07, name: "dock_left"}
-        - {id: 2, size: 0.07, name: "dock_right"}
+        # - {id: 1, size: 0.07, name: "dock_left"}
+        # - {id: 2, size: 0.07, name: "dock_right"}
 
       tag_bundles:
         - name: "dock_bundle"
           layout:
             - {id: 1, size: 0.07, x: -0.05, y: 0.0, z: 0.0, qw: 1.0, qx: 0.0, qy: 0.0, qz: 0.0}
             - {id: 2, size: 0.07, x:  0.05, y: 0.0, z: 0.0, qw: 1.0, qx: 0.0, qy: 0.0, qz: 0.0}
-        - name: "dock_bottom"
+        - name: "gatetoll"
           layout:
-            - {id: 0, size: 0.07}
+            - {id: 0, size: 0.052}
